@@ -1,9 +1,9 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, View,  StyleSheet } from 'react-native';
 
-export default function Tab() {
+export default function Index() {
   return (
     <View style={styles.container}>
-      <Text>Tab [Home|Settings]</Text>
+      <Text style={styles.text}>Home screen</Text>
     </View>
   );
 }
@@ -11,7 +11,11 @@ export default function Tab() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: '#25292e',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  text: {
+    color: '#fff',
   },
 });
