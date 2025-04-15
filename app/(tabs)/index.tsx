@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, Button } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
+import React, { useState, useCallback } from 'react';
+import { StyleSheet, Button, useColorScheme, View, Text } from 'react-native';
 import WordCard from '@/components/WordCard';
 import wordList from '@/assets/data/words.json';
+import { Colors } from '@/constants/Colors';
 
 const MAX_VISIBLE_CARDS = 3;
 
@@ -22,13 +22,14 @@ export default function Index() {
     setCurrentIndex(0); 
   };
 
+    const colorScheme = useColorScheme() ?? 'light';
   
   const renderCards = () => {
     if (currentIndex >= words.length) {
       return (
         <View style={styles.endContainer}>
-          <Text style={styles.endText}>No more words!</Text>
-          <Button title="Start Over" onPress={handleReset} color="#ffd33d" />
+          <Text style={[styles.endText, { color: Colors[colorScheme].text }]}>No more words!</Text>
+          <Button title="Start Over" onPress={handleReset} color={Colors[colorScheme].systemBlue} />
         </View>
       );
     }
@@ -52,9 +53,11 @@ export default function Index() {
       })
       .reverse(); 
   };
-
   return (
-    <View style={styles.container}>
+    <View style={[
+      styles.container, 
+      { backgroundColor: Colors[colorScheme].background }
+    ]}>
       {renderCards()}
     </View>
   );
@@ -63,7 +66,6 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#25292e',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -72,8 +74,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   endText: {
-    fontSize: 24,
-    color: '#fff',
-    marginBottom: 20,
+    fontSize: 28,
+    fontWeight: '500',
+    marginBottom: 24,
   },
 });
