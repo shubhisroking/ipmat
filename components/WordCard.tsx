@@ -198,15 +198,14 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
+const styles = StyleSheet.create({  card: {
     width: '90%',
     height: '70%',
     backgroundColor: '#FFFFFF',
     borderRadius: 16, 
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24, 
+    padding: 24,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -232,14 +231,14 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     lineHeight: 26, 
     letterSpacing: -0.2, 
-  },
-  actionButtonsContainer: {
+  },  actionButtonsContainer: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 0,
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     width: '80%',
+    transform: [{ translateY: 30 }],
   },
   actionButtonWrapper: {
     shadowColor: '#000',
