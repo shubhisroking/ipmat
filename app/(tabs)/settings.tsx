@@ -1,6 +1,5 @@
 import React from 'react';
-import { StyleSheet, useColorScheme, View, ScrollView, TouchableOpacity, Switch } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { StyleSheet, useColorScheme, View, ScrollView, TouchableOpacity } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
@@ -8,53 +7,10 @@ import { ThemedView } from '@/components/ThemedView';
 
 export default function Settings() {
   const colorScheme = useColorScheme() ?? 'light';
-  const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = React.useState(colorScheme === 'dark');
-
-  const toggleNotifications = () => setNotificationsEnabled(prev => !prev);
-  const toggleDarkMode = () => setDarkModeEnabled(prev => !prev);
 
   return (
     <ThemedView style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
-        <ThemedText style={styles.sectionHeader} variant="secondary">PREFERENCES</ThemedText>
-        
-        <ThemedView variant="secondary" style={styles.card}>
-          <View style={styles.settingRow}>
-            <View style={styles.settingTextContainer}>
-              <ThemedText style={styles.settingTitle}>Notifications</ThemedText>
-              <ThemedText variant="secondary" style={styles.settingDescription}>
-                Receive word of the day notifications
-              </ThemedText>
-            </View>
-            <Switch
-              value={notificationsEnabled}
-              onValueChange={toggleNotifications}
-              trackColor={{ false: '#d1d1d6', true: Colors[colorScheme].systemBlue }}
-              thumbColor="#FFFFFF"
-              ios_backgroundColor="#d1d1d6"
-            />
-          </View>
-          
-          <View style={[styles.separator, { backgroundColor: Colors[colorScheme].separator }]} />
-          
-          <View style={styles.settingRow}>
-            <View style={styles.settingTextContainer}>
-              <ThemedText style={styles.settingTitle}>Dark Mode</ThemedText>
-              <ThemedText variant="secondary" style={styles.settingDescription}>
-                Use system setting by default
-              </ThemedText>
-            </View>
-            <Switch
-              value={darkModeEnabled}
-              onValueChange={toggleDarkMode}
-              trackColor={{ false: '#d1d1d6', true: Colors[colorScheme].systemBlue }}
-              thumbColor="#FFFFFF"
-              ios_backgroundColor="#d1d1d6"
-            />
-          </View>
-        </ThemedView>
-        
         <ThemedText style={styles.sectionHeader} variant="secondary">ABOUT</ThemedText>
         
         <ThemedView variant="secondary" style={styles.card}>
@@ -126,24 +82,6 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 10,
     overflow: 'hidden',
-  },
-  settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-  },
-  settingTextContainer: {
-    flex: 1,
-    paddingRight: 16,
-  },
-  settingTitle: {
-    fontSize: 17,
-    fontWeight: '400',
-    marginBottom: 4,
-  },
-  settingDescription: {
-    fontSize: 14,
   },
   separator: {
     height: StyleSheet.hairlineWidth,
