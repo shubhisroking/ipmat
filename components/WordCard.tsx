@@ -42,13 +42,12 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
   const scaleDislike = useSharedValue(1);
   const scaleLike = useSharedValue(1);
   const scaleBookmark = useSharedValue(1);
-
   const cardStyle = useAnimatedStyle(() => {
     const rotateZ = interpolate(
       translateX.value,
       [-screenWidth / 2, 0, screenWidth / 2],
       [-ROTATION_ANGLE, 0, ROTATION_ANGLE],
-      Extrapolate.CLAMP
+      { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
     );
 
     return {
