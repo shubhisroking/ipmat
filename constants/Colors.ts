@@ -1,29 +1,12 @@
 /**
- * Apple-like color scheme for the app.
+ * Dark mode color scheme for the app.
  * These colors follow iOS design principles with clean, minimal aesthetics.
  */
 
-// Primary colors
-const primaryLight = '#007AFF'; // iOS blue
+// Primary color
 const primaryDark = '#0A84FF'; // iOS blue (dark mode)
 
 export const Colors = {
-  light: {
-    text: '#000000',
-    secondaryText: '#3C3C43',
-    tertiaryText: '#8E8E93',
-    background: '#FFFFFF',
-    secondaryBackground: '#F2F2F7',
-    groupedBackground: '#F2F2F7',
-    tint: primaryLight,
-    tabIconDefault: '#8E8E93',
-    tabIconSelected: primaryLight,
-    separator: 'rgba(60, 60, 67, 0.29)',
-    systemGray: '#8E8E93',
-    systemRed: '#FF3B30',
-    systemGreen: '#34C759',
-    systemBlue: '#007AFF',
-  },
   dark: {
     text: '#FFFFFF',
     secondaryText: '#EBEBF5',
@@ -38,5 +21,6 @@ export const Colors = {
     systemGray: '#8E8E93',
     systemRed: '#FF453A',
     systemGreen: '#32D74B',
-    systemBlue: '#0A84FF',  }
+    systemBlue: '#0A84FF',
+  }
 };

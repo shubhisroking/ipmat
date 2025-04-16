@@ -6,16 +6,16 @@ export type ThemedTextProps = TextProps & ThemeProps & {
 };
 
 export function ThemedText(props: ThemedTextProps) {
-  const { style, lightColor, darkColor, variant = 'default', ...otherProps } = props;
+  const { style, darkColor, variant = 'default', ...otherProps } = props;
   
-  // Map variant to color name
+  
   const colorName = variant === 'secondary' 
     ? 'secondaryText' 
     : variant === 'tertiary' 
       ? 'tertiaryText' 
       : 'text';
   
-  const color = useThemeColor({ lightColor, darkColor }, colorName);
+  const color = useThemeColor({ darkColor }, colorName);
 
   return <Text style={[{ color }, style]} {...otherProps} />;
 }

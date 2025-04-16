@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, useColorScheme, View, Pressable, Text } from 'react-native';
+import { StyleSheet, View, Pressable, Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import WordCard from '@/components/WordCard';
@@ -25,19 +25,18 @@ export default function Index() {
     setCurrentIndex(0); 
   };
 
-  const colorScheme = useColorScheme() ?? 'light';
-  const intensity = colorScheme === 'dark' ? 40 : 90;
+  const intensity = 40; 
   
   const renderCards = () => {
     if (currentIndex >= words.length) {
       return (
-        <BlurView intensity={intensity} tint={colorScheme} style={styles.endBlurContainer}>
+        <BlurView intensity={intensity} tint="dark" style={styles.endBlurContainer}>
           <View style={styles.endContainer}>
             <ThemedText style={styles.endText}>No more words!</ThemedText>
             <Pressable 
               style={({ pressed }) => [
                 styles.button,
-                { opacity: pressed ? 0.8 : 1, backgroundColor: Colors[colorScheme].systemBlue }
+                { opacity: pressed ? 0.8 : 1, backgroundColor: Colors.dark.systemBlue }
               ]}
               onPress={handleReset}
             >
@@ -71,7 +70,7 @@ export default function Index() {
   return (
     <View style={[
       styles.container, 
-      { backgroundColor: Colors[colorScheme].background }
+      { backgroundColor: Colors.dark.background }
     ]}>
       {renderCards()}
     </View>

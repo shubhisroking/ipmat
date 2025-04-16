@@ -1,13 +1,11 @@
 import React from 'react';
-import { StyleSheet, useColorScheme, View, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, ScrollView, TouchableOpacity } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 export default function Settings() {
-  const colorScheme = useColorScheme() ?? 'light';
-
   return (
     <ThemedView style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
@@ -15,38 +13,38 @@ export default function Settings() {
         
         <ThemedView variant="secondary" style={styles.card}>
           <TouchableOpacity style={styles.linkRow}>
-            <Ionicons name="help-circle-outline" size={22} color={Colors[colorScheme].systemBlue} />
+            <Ionicons name="help-circle-outline" size={22} color={Colors.dark.systemBlue} />
             <ThemedText style={styles.linkText}>Help & Support</ThemedText>
             <Ionicons 
               name="chevron-forward" 
               size={16} 
-              color={Colors[colorScheme].tertiaryText} 
+              color={Colors.dark.tertiaryText} 
               style={styles.chevron}
             />
           </TouchableOpacity>
           
-          <View style={[styles.separator, { backgroundColor: Colors[colorScheme].separator }]} />
+          <View style={[styles.separator, { backgroundColor: Colors.dark.separator }]} />
           
           <TouchableOpacity style={styles.linkRow}>
-            <Ionicons name="document-text-outline" size={22} color={Colors[colorScheme].systemBlue} />
+            <Ionicons name="document-text-outline" size={22} color={Colors.dark.systemBlue} />
             <ThemedText style={styles.linkText}>Privacy Policy</ThemedText>
             <Ionicons 
               name="chevron-forward" 
               size={16} 
-              color={Colors[colorScheme].tertiaryText} 
+              color={Colors.dark.tertiaryText} 
               style={styles.chevron}
             />
           </TouchableOpacity>
           
-          <View style={[styles.separator, { backgroundColor: Colors[colorScheme].separator }]} />
+          <View style={[styles.separator, { backgroundColor: Colors.dark.separator }]} />
           
           <TouchableOpacity style={styles.linkRow}>
-            <Ionicons name="information-circle-outline" size={22} color={Colors[colorScheme].systemBlue} />
+            <Ionicons name="information-circle-outline" size={22} color={Colors.dark.systemBlue} />
             <ThemedText style={styles.linkText}>About</ThemedText>
             <Ionicons 
               name="chevron-forward" 
               size={16} 
-              color={Colors[colorScheme].tertiaryText} 
+              color={Colors.dark.tertiaryText} 
               style={styles.chevron}
             />
           </TouchableOpacity>

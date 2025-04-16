@@ -6,16 +6,16 @@ export type ThemedViewProps = ViewProps & ThemeProps & {
 };
 
 export function ThemedView(props: ThemedViewProps) {
-  const { style, lightColor, darkColor, variant = 'default', ...otherProps } = props;
+  const { style, darkColor, variant = 'default', ...otherProps } = props;
   
-  // Map variant to color name
+  
   const colorName = variant === 'secondary' 
     ? 'secondaryBackground'
     : variant === 'grouped'
       ? 'groupedBackground'
       : 'background';
   
-  const backgroundColor = useThemeColor({ lightColor, darkColor }, colorName);
+  const backgroundColor = useThemeColor({ darkColor }, colorName);
 
   return <View style={[{ backgroundColor }, style]} {...otherProps} />;
 }
