@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, useWindowDimensions, Pressable } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -7,9 +7,13 @@ import Animated, {
   interpolate,
   Extrapolate,
   runOnJS,
+  withTiming,
+  withSequence,
+  withDelay,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
+import { Ionicons } from '@expo/vector-icons';
 
 const SWIPE_THRESHOLD = 120;
 const ROTATION_ANGLE = 15;
@@ -32,6 +36,12 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
   const translateY = useSharedValue(0);
   const rotate = useSharedValue(0);
   const context = useSharedValue({ startX: 0, startY: 0 });
+  const [pressedButton, setPressedButton] = useState<string | null>(null);
+
+  
+  const scaleDislike = useSharedValue(1);
+  const scaleLike = useSharedValue(1);
+  const scaleBookmark = useSharedValue(1);
 
   const cardStyle = useAnimatedStyle(() => {
     const rotateZ = interpolate(
@@ -47,6 +57,25 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
         { translateY: translateY.value },
         { rotateZ: `${rotateZ}deg` },
       ],
+    };
+  });
+
+  
+  const dislikeButtonStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scaleDislike.value }],
+    };
+  });
+
+  const likeButtonStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scaleLike.value }],
+    };
+  });
+
+  const bookmarkButtonStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scaleBookmark.value }],
     };
   });
 
@@ -72,18 +101,98 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
         translateY.value = withSpring(0);
       }
     });
+
   useEffect(() => {
     if (isActive) {
-        translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
+      translateX.value = withSpring(0);
+      translateY.value = withSpring(0);
     }
   }, [isActive, translateX, translateY]);
+
+  const handleButtonPress = (action: string) => {
+    setPressedButton(action);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    switch (action) {
+      case 'dislike':
+        scaleDislike.value = withSequence(
+          withTiming(1.2, { duration: 150 }),
+          withTiming(1, { duration: 150 })
+        );
+        translateX.value = withSpring(-screenWidth * 1.5, { damping: 100, stiffness: 100 });
+        setTimeout(() => onSwipe('left'), 300);
+        break;
+      case 'like':
+        scaleLike.value = withSequence(
+          withTiming(1.2, { duration: 150 }),
+          withTiming(1, { duration: 150 })
+        );
+        translateX.value = withSpring(screenWidth * 1.5, { damping: 100, stiffness: 100 });
+        setTimeout(() => onSwipe('right'), 300);
+        break;
+      case 'bookmark':
+        scaleBookmark.value = withSequence(
+          withTiming(1.2, { duration: 150 }),
+          withTiming(1, { duration: 150 })
+        );
+        
+        break;
+    }
+    
+    
+    setTimeout(() => setPressedButton(null), 300);
+  };
 
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View style={[styles.card, cardStyle]}>
         <Text style={styles.wordText}>{word.word}</Text>
         <Text style={styles.meaningText}>{word.meaning}</Text>
+        
+        {/* Action Buttons */}
+        <View style={styles.actionButtonsContainer}>
+          <Animated.View style={[styles.actionButtonWrapper, dislikeButtonStyle]}>
+            <Pressable
+              style={[
+                styles.actionButton, 
+                styles.dislikeButton,
+                pressedButton === 'dislike' && styles.actionButtonPressed
+              ]}
+              onPress={() => handleButtonPress('dislike')}
+              disabled={!isActive}
+            >
+              <Ionicons name="close" size={30} color="#FF453A" />
+            </Pressable>
+          </Animated.View>
+
+          <Animated.View style={[styles.actionButtonWrapper, bookmarkButtonStyle]}>
+            <Pressable
+              style={[
+                styles.actionButton, 
+                styles.bookmarkButton,
+                pressedButton === 'bookmark' && styles.actionButtonPressed
+              ]}
+              onPress={() => handleButtonPress('bookmark')}
+              disabled={!isActive}
+            >
+              <Ionicons name="bookmark" size={26} color="#32D74B" />
+            </Pressable>
+          </Animated.View>
+
+          <Animated.View style={[styles.actionButtonWrapper, likeButtonStyle]}>
+            <Pressable
+              style={[
+                styles.actionButton, 
+                styles.likeButton,
+                pressedButton === 'like' && styles.actionButtonPressed
+              ]}
+              onPress={() => handleButtonPress('like')}
+              disabled={!isActive}
+            >
+              <Ionicons name="heart" size={26} color="#0A84FF" />
+            </Pressable>
+          </Animated.View>
+        </View>
       </Animated.View>
     </GestureDetector>
   );
@@ -123,6 +232,54 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     lineHeight: 26, 
     letterSpacing: -0.2, 
+  },
+  actionButtonsContainer: {
+    position: 'absolute',
+    bottom: 40,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    width: '80%',
+  },
+  actionButtonWrapper: {
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
+  actionButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  dislikeButton: {
+    borderWidth: 1,
+    borderColor: 'rgba(255, 69, 58, 0.2)',
+  },
+  likeButton: {
+    borderWidth: 1,
+    borderColor: 'rgba(10, 132, 255, 0.2)',
+  },
+  bookmarkButton: {
+    borderWidth: 1,
+    borderColor: 'rgba(50, 215, 75, 0.2)',
+  },
+  actionButtonPressed: {
+    opacity: 0.8,
   },
 });
 
