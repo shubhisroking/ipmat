@@ -1,8 +1,11 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, Button, useColorScheme, View, Text } from 'react-native';
+import { StyleSheet, useColorScheme, View, Pressable, Text } from 'react-native';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import WordCard from '@/components/WordCard';
 import wordList from '@/assets/data/words.json';
 import { Colors } from '@/constants/Colors';
+import { ThemedText } from '@/components/ThemedText';
 
 const MAX_VISIBLE_CARDS = 3;
 
@@ -12,25 +15,36 @@ export default function Index() {
 
   const handleSwipe = useCallback((direction: 'left' | 'right') => {
     console.log(`Swiped ${direction}: ${words[currentIndex]?.word}`);
-    
     setCurrentIndex((prevIndex) => prevIndex + 1);
   }, [currentIndex, words]);
 
   const handleReset = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     console.log('Resetting words...');
     setWords(wordList); 
     setCurrentIndex(0); 
   };
 
-    const colorScheme = useColorScheme() ?? 'light';
+  const colorScheme = useColorScheme() ?? 'light';
+  const intensity = colorScheme === 'dark' ? 40 : 90;
   
   const renderCards = () => {
     if (currentIndex >= words.length) {
       return (
-        <View style={styles.endContainer}>
-          <Text style={[styles.endText, { color: Colors[colorScheme].text }]}>No more words!</Text>
-          <Button title="Start Over" onPress={handleReset} color={Colors[colorScheme].systemBlue} />
-        </View>
+        <BlurView intensity={intensity} tint={colorScheme} style={styles.endBlurContainer}>
+          <View style={styles.endContainer}>
+            <ThemedText style={styles.endText}>No more words!</ThemedText>
+            <Pressable 
+              style={({ pressed }) => [
+                styles.button,
+                { opacity: pressed ? 0.8 : 1, backgroundColor: Colors[colorScheme].systemBlue }
+              ]}
+              onPress={handleReset}
+            >
+              <Text style={styles.buttonText}>Start Over</Text>
+            </Pressable>
+          </View>
+        </BlurView>
       );
     }
 
@@ -53,6 +67,7 @@ export default function Index() {
       })
       .reverse(); 
   };
+  
   return (
     <View style={[
       styles.container, 
@@ -69,7 +84,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  endBlurContainer: {
+    width: '90%',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
   endContainer: {
+    padding: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -77,5 +98,18 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '500',
     marginBottom: 24,
+    letterSpacing: -0.5,
+  },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '600',
+    letterSpacing: -0.4,
   },
 });

@@ -64,7 +64,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
       if (Math.abs(event.translationX) > SWIPE_THRESHOLD) {
         const direction = event.translationX > 0 ? 'right' : 'left';
         translateX.value = withSpring(Math.sign(event.translationX) * screenWidth * 1.5, { damping: 100, stiffness: 100 });
-        translateY.value = withSpring(event.translationY, { damping: 100, stiffness: 100 }); // Keep vertical position
+        translateY.value = withSpring(event.translationY, { damping: 100, stiffness: 100 }); 
         runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
         runOnJS(onSwipe)(direction);
       } else {
@@ -94,33 +94,35 @@ const styles = StyleSheet.create({
     width: '90%',
     height: '70%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 16, 
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 24, 
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
+    shadowOpacity: 0.1, 
+    shadowRadius: 10,
     elevation: 4,
-    position: 'absolute', // Important for stacking
+    position: 'absolute', 
   },
   wordText: {
-    fontSize: 34,
-    fontWeight: '600',
-    marginBottom: 16,
+    fontSize: 36, 
+    fontWeight: '500', 
+    marginBottom: 20,
     textAlign: 'center',
     color: '#000000',
+    letterSpacing: -0.5, 
   },
   meaningText: {
-    fontSize: 19,
+    fontSize: 18, 
     textAlign: 'center',
     color: '#3C3C43',
     opacity: 0.8,
-    lineHeight: 24,
+    lineHeight: 26, 
+    letterSpacing: -0.2, 
   },
 });
 

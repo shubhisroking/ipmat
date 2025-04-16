@@ -1,17 +1,171 @@
-import { View, Text, StyleSheet } from 'react-native';
+import React from 'react';
+import { StyleSheet, useColorScheme, View, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import { BlurView } from 'expo-blur';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '@/constants/Colors';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
 
-export default function Tab() {
+export default function Settings() {
+  const colorScheme = useColorScheme() ?? 'light';
+  const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+  const [darkModeEnabled, setDarkModeEnabled] = React.useState(colorScheme === 'dark');
+
+  const toggleNotifications = () => setNotificationsEnabled(prev => !prev);
+  const toggleDarkMode = () => setDarkModeEnabled(prev => !prev);
+
   return (
-    <View style={styles.container}>
-      <Text>Tab [Home|Settings]</Text>
-    </View>
+    <ThemedView style={styles.container}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
+        <ThemedText style={styles.sectionHeader} variant="secondary">PREFERENCES</ThemedText>
+        
+        <ThemedView variant="secondary" style={styles.card}>
+          <View style={styles.settingRow}>
+            <View style={styles.settingTextContainer}>
+              <ThemedText style={styles.settingTitle}>Notifications</ThemedText>
+              <ThemedText variant="secondary" style={styles.settingDescription}>
+                Receive word of the day notifications
+              </ThemedText>
+            </View>
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={toggleNotifications}
+              trackColor={{ false: '#d1d1d6', true: Colors[colorScheme].systemBlue }}
+              thumbColor="#FFFFFF"
+              ios_backgroundColor="#d1d1d6"
+            />
+          </View>
+          
+          <View style={[styles.separator, { backgroundColor: Colors[colorScheme].separator }]} />
+          
+          <View style={styles.settingRow}>
+            <View style={styles.settingTextContainer}>
+              <ThemedText style={styles.settingTitle}>Dark Mode</ThemedText>
+              <ThemedText variant="secondary" style={styles.settingDescription}>
+                Use system setting by default
+              </ThemedText>
+            </View>
+            <Switch
+              value={darkModeEnabled}
+              onValueChange={toggleDarkMode}
+              trackColor={{ false: '#d1d1d6', true: Colors[colorScheme].systemBlue }}
+              thumbColor="#FFFFFF"
+              ios_backgroundColor="#d1d1d6"
+            />
+          </View>
+        </ThemedView>
+        
+        <ThemedText style={styles.sectionHeader} variant="secondary">ABOUT</ThemedText>
+        
+        <ThemedView variant="secondary" style={styles.card}>
+          <TouchableOpacity style={styles.linkRow}>
+            <Ionicons name="help-circle-outline" size={22} color={Colors[colorScheme].systemBlue} />
+            <ThemedText style={styles.linkText}>Help & Support</ThemedText>
+            <Ionicons 
+              name="chevron-forward" 
+              size={16} 
+              color={Colors[colorScheme].tertiaryText} 
+              style={styles.chevron}
+            />
+          </TouchableOpacity>
+          
+          <View style={[styles.separator, { backgroundColor: Colors[colorScheme].separator }]} />
+          
+          <TouchableOpacity style={styles.linkRow}>
+            <Ionicons name="document-text-outline" size={22} color={Colors[colorScheme].systemBlue} />
+            <ThemedText style={styles.linkText}>Privacy Policy</ThemedText>
+            <Ionicons 
+              name="chevron-forward" 
+              size={16} 
+              color={Colors[colorScheme].tertiaryText} 
+              style={styles.chevron}
+            />
+          </TouchableOpacity>
+          
+          <View style={[styles.separator, { backgroundColor: Colors[colorScheme].separator }]} />
+          
+          <TouchableOpacity style={styles.linkRow}>
+            <Ionicons name="information-circle-outline" size={22} color={Colors[colorScheme].systemBlue} />
+            <ThemedText style={styles.linkText}>About</ThemedText>
+            <Ionicons 
+              name="chevron-forward" 
+              size={16} 
+              color={Colors[colorScheme].tertiaryText} 
+              style={styles.chevron}
+            />
+          </TouchableOpacity>
+        </ThemedView>
+        
+        <ThemedText style={styles.versionText} variant="tertiary">
+          Version 1.0.0
+        </ThemedText>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingTop: 16,
+    paddingBottom: 40,
+    paddingHorizontal: 16,
+  },
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginLeft: 16,
+    marginBottom: 8,
+    marginTop: 16,
+  },
+  card: {
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  settingRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  settingTextContainer: {
+    flex: 1,
+    paddingRight: 16,
+  },
+  settingTitle: {
+    fontSize: 17,
+    fontWeight: '400',
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontSize: 14,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 16,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  linkText: {
+    fontSize: 17,
+    fontWeight: '400',
+    marginLeft: 12,
+    flex: 1,
+  },
+  chevron: {
+    marginLeft: 'auto',
+  },
+  versionText: {
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 24,
   },
 });
