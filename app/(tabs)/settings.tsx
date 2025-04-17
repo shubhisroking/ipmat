@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { router } from 'expo-router';
 
 export default function Settings() {
   return (
@@ -35,10 +36,9 @@ export default function Settings() {
               style={styles.chevron}
             />
           </TouchableOpacity>
+            <View style={[styles.separator, { backgroundColor: Colors.dark.separator }]} />
           
-          <View style={[styles.separator, { backgroundColor: Colors.dark.separator }]} />
-          
-          <TouchableOpacity style={styles.linkRow}>
+          <TouchableOpacity style={styles.linkRow} onPress={() => router.push('/about')}>
             <Ionicons name="information-circle-outline" size={22} color={Colors.dark.systemBlue} />
             <ThemedText style={styles.linkText}>About</ThemedText>
             <Ionicons 
