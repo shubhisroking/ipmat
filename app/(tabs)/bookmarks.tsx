@@ -1,30 +1,61 @@
-import React from 'react';
-import { StyleSheet, View, FlatList } from 'react-native';
+import React, { useCallback } from 'react';
+import { StyleSheet, View, FlatList, Pressable, Alert } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Ionicons } from '@expo/vector-icons';
+import { useBookmarkStore } from '@/store/bookmarkStore';
+import * as Haptics from 'expo-haptics';
 
-// Dummy data for the bookmarks
-const dummyBookmarks = [
-  { id: '1', word: 'Ephemeral', meaning: 'Lasting for a very short time' },
-  { id: '2', word: 'Ubiquitous', meaning: 'Present, appearing, or found everywhere' },
-  { id: '3', word: 'Serendipity', meaning: 'The occurrence of events by chance in a happy or beneficial way' },
-  { id: '4', word: 'Eloquent', meaning: 'Fluent or persuasive in speaking or writing' },
-];
+
+type Word = {
+  id: number | string;
+  word: string;
+  meaning: string;
+};
+
+
+const useBookmarks = () => {
+  const bookmarks = useBookmarkStore((state) => state.bookmarks);
+  const removeBookmark = useBookmarkStore((state) => state.removeBookmark);
+  
+  return { bookmarks, removeBookmark };
+};
 
 export default function Bookmarks() {
-  const renderBookmarkItem = ({ item }: { item: typeof dummyBookmarks[0] }) => (
-    <ThemedView variant="secondary" style={styles.card}>
-      <View style={styles.cardHeader}>
-        <ThemedText style={styles.wordText}>{item.word}</ThemedText>
-        <Ionicons name="bookmark" size={20} color={Colors.dark.systemGreen} />
-      </View>
-      <ThemedText variant="secondary" style={styles.meaningText}>{item.meaning}</ThemedText>
-    </ThemedView>
-  );
+  const { bookmarks, removeBookmark } = useBookmarks();
 
-  const renderEmptyComponent = () => (
+  const handleRemoveBookmark = useCallback((item: Word) => {
+    Alert.alert(
+      'Remove Bookmark',
+      `Are you sure you want to remove "${item.word}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => {
+            removeBookmark(item.id);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          },
+        },
+      ]
+    );
+  }, [removeBookmark]);
+
+  const renderBookmarkItem = useCallback(({ item }: { item: Word }) => (
+    <Pressable onPress={() => handleRemoveBookmark(item)}>
+      <ThemedView variant="secondary" style={styles.card}>
+        <View style={styles.cardHeader}>
+          <ThemedText style={styles.wordText}>{item.word}</ThemedText>
+          <Ionicons name="bookmark" size={20} color={Colors.dark.systemGreen} />
+        </View>
+        <ThemedText variant="secondary" style={styles.meaningText}>{item.meaning}</ThemedText>
+      </ThemedView>
+    </Pressable>
+  ), [handleRemoveBookmark]);
+
+  const renderEmptyComponent = useCallback(() => (
     <View style={styles.emptyContainer}>
       <Ionicons name="bookmark-outline" size={60} color={Colors.dark.secondaryText} style={styles.emptyIcon} />
       <ThemedText variant="secondary" style={styles.emptyText}>No bookmarks yet</ThemedText>
@@ -32,14 +63,16 @@ export default function Bookmarks() {
         Bookmarked words will appear here
       </ThemedText>
     </View>
-  );
+  ), []);
+
+  const keyExtractor = useCallback((item: Word) => item.id.toString(), []);
 
   return (
     <ThemedView style={styles.container}>
-      {dummyBookmarks.length > 0 ? (
+      {bookmarks.length > 0 ? (
         <FlatList
-          data={dummyBookmarks}
-          keyExtractor={(item) => item.id}
+          data={bookmarks}
+          keyExtractor={keyExtractor}
           renderItem={renderBookmarkItem}
           contentContainerStyle={styles.listContent}
         />
