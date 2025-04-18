@@ -9,14 +9,27 @@ import Animated, {
   runOnJS,
   withTiming,
   withSequence,
+  Easing,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useBookmarkStore } from '@/store/bookmarkStore';
+import { Image } from 'expo-image';
 
 const SWIPE_THRESHOLD = 120;
 const ROTATION_ANGLE = 15;
+
+const SPRING_CONFIG = {
+  damping: 15,
+  stiffness: 120,
+  mass: 0.8,
+  overshootClamping: false,
+};
+const TIMING_CONFIG = {
+  duration: 300,
+  easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+};
 
 type Word = {
   id: number;
@@ -34,11 +47,11 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
   const { width: screenWidth } = useWindowDimensions();
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
-  const rotate = useSharedValue(0);
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
   const context = useSharedValue({ startX: 0, startY: 0 });
   const [pressedButton, setPressedButton] = useState<string | null>(null);
 
-  
   const isBookmarked = useBookmarkStore(
     useCallback((state) => state.isBookmarked(word.id), [word.id])
   );
@@ -55,12 +68,33 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
   const scaleLike = useSharedValue(1);
   const scaleBookmark = useSharedValue(1);
 
+  
+  const doneOpacity = useSharedValue(0);
+  const reviewLaterOpacity = useSharedValue(0);
+
+  
   const cardStyle = useAnimatedStyle(() => {
     const rotateZ = interpolate(
       translateX.value,
       [-screenWidth / 2, 0, screenWidth / 2],
       [-ROTATION_ANGLE, 0, ROTATION_ANGLE],
-      { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+      Extrapolate.CLAMP
+    );
+
+    
+    const rotateY = interpolate(
+      translateX.value,
+      [-screenWidth / 2, 0, screenWidth / 2],
+      [5, 0, -5],
+      Extrapolate.CLAMP
+    );
+
+    
+    const shadowOpacity = interpolate(
+      Math.abs(translateX.value),
+      [0, screenWidth / 4],
+      [0.1, 0.25],
+      Extrapolate.CLAMP
     );
 
     return {
@@ -68,7 +102,11 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
         { translateX: translateX.value },
         { translateY: translateY.value },
         { rotateZ: `${rotateZ}deg` },
+        { rotateY: `${rotateY}deg` },
+        { scale: scale.value },
       ],
+      opacity: opacity.value,
+      shadowOpacity,
     };
   });
 
@@ -84,6 +122,36 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
     transform: [{ scale: scaleBookmark.value }],
   }));
 
+  
+  const doneStyle = useAnimatedStyle(() => ({
+    opacity: doneOpacity.value,
+    transform: [
+      { 
+        scale: interpolate(
+          doneOpacity.value, 
+          [0, 1], 
+          [0.8, 1], 
+          Extrapolate.CLAMP
+        ) 
+      }
+    ]
+  }));
+
+  const reviewLaterStyle = useAnimatedStyle(() => ({
+    opacity: reviewLaterOpacity.value,
+    transform: [
+      { 
+        scale: interpolate(
+          reviewLaterOpacity.value, 
+          [0, 1], 
+          [0.8, 1], 
+          Extrapolate.CLAMP
+        ) 
+      }
+    ]
+  }));
+
+  
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
@@ -91,36 +159,95 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
         .onStart(() => {
           context.value.startX = translateX.value;
           context.value.startY = translateY.value;
+          scale.value = withTiming(1.03, { duration: 200 });
         })
         .onUpdate((event) => {
           translateX.value = context.value.startX + event.translationX;
           translateY.value = context.value.startY + event.translationY;
+          
+          
+          if (event.translationX > 50) {
+            doneOpacity.value = withTiming(
+              interpolate(
+                event.translationX,
+                [50, SWIPE_THRESHOLD],
+                [0, 1],
+                Extrapolate.CLAMP
+              ),
+              { duration: 100 }
+            );
+            reviewLaterOpacity.value = withTiming(0, { duration: 100 });
+          } else if (event.translationX < -50) {
+            reviewLaterOpacity.value = withTiming(
+              interpolate(
+                Math.abs(event.translationX),
+                [50, SWIPE_THRESHOLD],
+                [0, 1],
+                Extrapolate.CLAMP
+              ),
+              { duration: 100 }
+            );
+            doneOpacity.value = withTiming(0, { duration: 100 });
+          } else {
+            doneOpacity.value = withTiming(0, { duration: 100 });
+            reviewLaterOpacity.value = withTiming(0, { duration: 100 });
+          }
+          
+          
+          const direction = event.translationX > 0 ? 'right' : 'left';
+          if (direction === 'right' && event.translationX > 50) {
+            scaleLike.value = withTiming(1.1, { duration: 100 });
+          } else if (direction === 'left' && event.translationX < -50) {
+            scaleDislike.value = withTiming(1.1, { duration: 100 });
+          } else {
+            scaleLike.value = withTiming(1, { duration: 100 });
+            scaleDislike.value = withTiming(1, { duration: 100 });
+          }
         })
         .onEnd((event) => {
+          scale.value = withTiming(1, { duration: 200 });
+          doneOpacity.value = withTiming(0, { duration: 150 });
+          reviewLaterOpacity.value = withTiming(0, { duration: 150 });
+          
           if (Math.abs(event.translationX) > SWIPE_THRESHOLD) {
             const direction = event.translationX > 0 ? 'right' : 'left';
-            translateX.value = withSpring(Math.sign(event.translationX) * screenWidth * 1.5, {
-              damping: 100,
-              stiffness: 100,
-            });
-            translateY.value = withSpring(event.translationY, { damping: 100, stiffness: 100 });
+            
+            
+            opacity.value = withTiming(0, { duration: 300 });
+            scale.value = withTiming(0.8, { duration: 300 });
+            
+            translateX.value = withSpring(
+              Math.sign(event.translationX) * screenWidth * 1.5, 
+              SPRING_CONFIG
+            );
+            translateY.value = withSpring(event.translationY, SPRING_CONFIG);
+            
+            
             runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
             runOnJS(onSwipe)(direction);
           } else {
-            translateX.value = withSpring(0);
-            translateY.value = withSpring(0);
+            
+            translateX.value = withSpring(0, SPRING_CONFIG);
+            translateY.value = withSpring(0, SPRING_CONFIG);
+            scaleLike.value = withTiming(1, { duration: 150 });
+            scaleDislike.value = withTiming(1, { duration: 150 });
           }
         }),
     [isActive, screenWidth, onSwipe]
   );
 
+  
   useEffect(() => {
     if (isActive) {
-      translateX.value = withSpring(0);
-      translateY.value = withSpring(0);
-      scaleBookmark.value = withTiming(1);
+      translateX.value = withSpring(0, SPRING_CONFIG);
+      translateY.value = withSpring(0, SPRING_CONFIG);
+      scaleBookmark.value = withTiming(1, TIMING_CONFIG);
+      scale.value = withTiming(1, TIMING_CONFIG);
+      opacity.value = withTiming(1, TIMING_CONFIG);
+      doneOpacity.value = withTiming(0, TIMING_CONFIG);
+      reviewLaterOpacity.value = withTiming(0, TIMING_CONFIG);
     }
-  }, [isActive, translateX, translateY, scaleBookmark]);
+  }, [isActive, translateX, translateY, scaleBookmark, scale, opacity, doneOpacity, reviewLaterOpacity]);
 
   const handleButtonPress = useCallback(
     (action: string) => {
@@ -130,23 +257,35 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
       switch (action) {
         case 'dislike':
           scaleDislike.value = withSequence(
-            withTiming(1.2, { duration: 150 }),
+            withTiming(1.3, { duration: 150 }),
             withTiming(1, { duration: 150 })
           );
-          translateX.value = withSpring(-screenWidth * 1.5, { damping: 100, stiffness: 100 });
-          setTimeout(() => onSwipe('left'), 300);
+          opacity.value = withTiming(0, { duration: 300 });
+          scale.value = withTiming(0.8, { duration: 300 });
+          translateX.value = withSpring(-screenWidth * 1.5, SPRING_CONFIG);
+          reviewLaterOpacity.value = withTiming(1, { duration: 100 });
+          setTimeout(() => {
+            reviewLaterOpacity.value = withTiming(0, { duration: 100 });
+            onSwipe('left');
+          }, 200);
           break;
         case 'like':
           scaleLike.value = withSequence(
-            withTiming(1.2, { duration: 150 }),
+            withTiming(1.3, { duration: 150 }),
             withTiming(1, { duration: 150 })
           );
-          translateX.value = withSpring(screenWidth * 1.5, { damping: 100, stiffness: 100 });
-          setTimeout(() => onSwipe('right'), 300);
+          opacity.value = withTiming(0, { duration: 300 });
+          scale.value = withTiming(0.8, { duration: 300 });
+          translateX.value = withSpring(screenWidth * 1.5, SPRING_CONFIG);
+          doneOpacity.value = withTiming(1, { duration: 100 });
+          setTimeout(() => {
+            doneOpacity.value = withTiming(0, { duration: 100 });
+            onSwipe('right');
+          }, 200);
           break;
         case 'bookmark':
           scaleBookmark.value = withSequence(
-            withTiming(1.2, { duration: 150 }),
+            withTiming(1.3, { duration: 150 }),
             withTiming(1, { duration: 150 })
           );
           if (isBookmarked) {
@@ -169,6 +308,15 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View style={[styles.card, cardStyle]}>
+        {/* Decision indicators */}
+        <Animated.View style={[styles.decisionLabel, styles.doneLabel, doneStyle]}>
+          <Text style={styles.decisionText}>DONE</Text>
+        </Animated.View>
+        
+        <Animated.View style={[styles.decisionLabel, styles.reviewLaterLabel, reviewLaterStyle]}>
+          <Text style={styles.decisionText}>REVIEW LATER</Text>
+        </Animated.View>
+        
         <Text style={styles.wordText}>{word.word}</Text>
         <Text style={styles.meaningText}>{word.meaning}</Text>
 
@@ -224,31 +372,35 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
   );
 };
 
-const styles = StyleSheet.create({  card: {
+const styles = StyleSheet.create({
+  card: {
     width: '90%',
     height: '70%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 16, 
+    borderRadius: 20, 
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 3,
+      height: 5,
     },
     shadowOpacity: 0.1, 
-    shadowRadius: 10,
-    elevation: 4,
-    position: 'absolute', 
+    shadowRadius: 12,
+    elevation: 8,
+    position: 'absolute',
+    
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.03)',
   },
   wordText: {
     fontSize: 36, 
     fontWeight: '500', 
-    marginBottom: 20,
+    marginBottom: 24,
     textAlign: 'center',
     color: '#000000',
-    letterSpacing: -0.5, 
+    letterSpacing: -0.5,
   },
   meaningText: {
     fontSize: 18, 
@@ -256,8 +408,10 @@ const styles = StyleSheet.create({  card: {
     color: '#3C3C43',
     opacity: 0.8,
     lineHeight: 26, 
-    letterSpacing: -0.2, 
-  },  actionButtonsContainer: {
+    letterSpacing: -0.2,
+    maxWidth: '90%',
+  },
+  actionButtonsContainer: {
     position: 'absolute',
     bottom: 0,
     flexDirection: 'row',
@@ -270,43 +424,65 @@ const styles = StyleSheet.create({  card: {
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
   },
   actionButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'white',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 6,
   },
   dislikeButton: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: 'rgba(255, 69, 58, 0.2)',
   },
   likeButton: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: 'rgba(10, 132, 255, 0.2)',
   },
   bookmarkButton: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: 'rgba(50, 215, 75, 0.2)',
-    
-    
   },
   actionButtonPressed: {
-    opacity: 0.8,
+    opacity: 0.7,
+    transform: [{ scale: 0.95 }],
+  },
+  
+  decisionLabel: {
+    position: 'absolute',
+    top: 45,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderWidth: 3,
+    borderRadius: 8,
+    transform: [{ rotate: '-15deg' }],
+  },
+  doneLabel: {
+    borderColor: '#32D74B',
+    right: 20,
+  },
+  reviewLaterLabel: {
+    borderColor: '#FF453A',
+    left: 20,
+  },
+  decisionText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
 });
 

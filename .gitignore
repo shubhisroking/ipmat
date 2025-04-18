@@ -42,3 +42,6 @@ app-example
 
 assets/data
 package-lock.json
+
+android
+ios
