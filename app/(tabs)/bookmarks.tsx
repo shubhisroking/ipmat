@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  FlatList, 
-  Pressable, 
-  Alert, 
-  ActivityIndicator, 
-  RefreshControl 
+import {
+  StyleSheet,
+  View,
+  FlatList,
+  Pressable,
+  Alert,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
@@ -23,37 +23,37 @@ type Word = {
 
 // Enhanced selectors to access all the new state properties
 const useBookmarksData = () => {
-  const bookmarks = useBookmarkStore(state => state.bookmarks);
-  const removeBookmark = useBookmarkStore(state => state.removeBookmark);
-  const isLoading = useBookmarkStore(state => state.isLoading);
-  const isLoadingMore = useBookmarkStore(state => state.isLoadingMore);
-  const loadingError = useBookmarkStore(state => state.loadingError);
-  const hasMoreToLoad = useBookmarkStore(state => state.hasMoreToLoad);
-  const loadMoreBookmarks = useBookmarkStore(state => state.loadMoreBookmarks);
-  const retryLoading = useBookmarkStore(state => state.retryLoading);
-  
-  return { 
-    bookmarks, 
-    removeBookmark, 
-    isLoading, 
-    isLoadingMore, 
-    loadingError, 
-    hasMoreToLoad, 
+  const bookmarks = useBookmarkStore((state) => state.bookmarks);
+  const removeBookmark = useBookmarkStore((state) => state.removeBookmark);
+  const isLoading = useBookmarkStore((state) => state.isLoading);
+  const isLoadingMore = useBookmarkStore((state) => state.isLoadingMore);
+  const loadingError = useBookmarkStore((state) => state.loadingError);
+  const hasMoreToLoad = useBookmarkStore((state) => state.hasMoreToLoad);
+  const loadMoreBookmarks = useBookmarkStore((state) => state.loadMoreBookmarks);
+  const retryLoading = useBookmarkStore((state) => state.retryLoading);
+
+  return {
+    bookmarks,
+    removeBookmark,
+    isLoading,
+    isLoadingMore,
+    loadingError,
+    hasMoreToLoad,
     loadMoreBookmarks,
-    retryLoading
+    retryLoading,
   };
 };
 
 export default function Bookmarks() {
-  const { 
-    bookmarks, 
-    removeBookmark, 
-    isLoading, 
-    isLoadingMore, 
-    loadingError, 
-    hasMoreToLoad, 
+  const {
+    bookmarks,
+    removeBookmark,
+    isLoading,
+    isLoadingMore,
+    loadingError,
+    hasMoreToLoad,
     loadMoreBookmarks,
-    retryLoading 
+    retryLoading,
   } = useBookmarksData();
   // Force load (useful for first visit or returning to the tab)
   useEffect(() => {
@@ -63,11 +63,9 @@ export default function Bookmarks() {
   }, [isLoading, bookmarks.length, loadingError, retryLoading]);
 
   // Handle bookmark removal
-  const handleRemoveBookmark = useCallback((item: Word) => {
-    Alert.alert(
-      'Remove Bookmark',
-      `Are you sure you want to remove "${item.word}"?`,
-      [
+  const handleRemoveBookmark = useCallback(
+    (item: Word) => {
+      Alert.alert('Remove Bookmark', `Are you sure you want to remove "${item.word}"?`, [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Remove',
@@ -77,22 +75,28 @@ export default function Bookmarks() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           },
         },
-      ]
-    );
-  }, [removeBookmark]);
+      ]);
+    },
+    [removeBookmark],
+  );
 
   // Render individual bookmark item
-  const renderBookmarkItem = useCallback(({ item }: { item: Word }) => (
-    <Pressable onPress={() => handleRemoveBookmark(item)}>
-      <ThemedView variant="secondary" style={styles.card}>
-        <View style={styles.cardHeader}>
-          <ThemedText style={styles.wordText}>{item.word}</ThemedText>
-          <Ionicons name="bookmark" size={20} color={Colors.dark.systemGreen} />
-        </View>
-        <ThemedText variant="secondary" style={styles.meaningText}>{item.meaning}</ThemedText>
-      </ThemedView>
-    </Pressable>
-  ), [handleRemoveBookmark]);
+  const renderBookmarkItem = useCallback(
+    ({ item }: { item: Word }) => (
+      <Pressable onPress={() => handleRemoveBookmark(item)}>
+        <ThemedView variant="secondary" style={styles.card}>
+          <View style={styles.cardHeader}>
+            <ThemedText style={styles.wordText}>{item.word}</ThemedText>
+            <Ionicons name="bookmark" size={20} color={Colors.dark.systemGreen} />
+          </View>
+          <ThemedText variant="secondary" style={styles.meaningText}>
+            {item.meaning}
+          </ThemedText>
+        </ThemedView>
+      </Pressable>
+    ),
+    [handleRemoveBookmark],
+  );
 
   // Handle loading more bookmarks when scrolling to the end
   const handleEndReached = useCallback(() => {
@@ -104,7 +108,7 @@ export default function Bookmarks() {
   // Render the loading state at the bottom of the list
   const renderFooter = useCallback(() => {
     if (!isLoadingMore) return null;
-    
+
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator size="small" color={Colors.dark.systemBlue} />
@@ -122,42 +126,53 @@ export default function Bookmarks() {
       return (
         <View style={styles.emptyContainer}>
           <ActivityIndicator size="large" color={Colors.dark.systemBlue} />
-          <ThemedText variant="secondary" style={[styles.emptyText, {marginTop: 16}]}>
+          <ThemedText variant="secondary" style={[styles.emptyText, { marginTop: 16 }]}>
             Loading bookmarks...
           </ThemedText>
         </View>
       );
     }
-    
+
     // Show error state if there was a loading error
     if (loadingError) {
       return (
         <View style={styles.emptyContainer}>
-          <Ionicons name="alert-circle-outline" size={60} color={Colors.dark.systemRed} style={styles.emptyIcon} />
+          <Ionicons
+            name="alert-circle-outline"
+            size={60}
+            color={Colors.dark.systemRed}
+            style={styles.emptyIcon}
+          />
           <ThemedText variant="secondary" style={styles.emptyText}>
             Error loading bookmarks
           </ThemedText>
           <ThemedText variant="tertiary" style={styles.emptySubText}>
             {loadingError.message || 'Something went wrong'}
           </ThemedText>
-          <Pressable 
+          <Pressable
             style={styles.retryButton}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               retryLoading();
-            }}
-          >
+            }}>
             <ThemedText style={styles.retryButtonText}>Try Again</ThemedText>
           </Pressable>
         </View>
       );
     }
-    
+
     // Default empty state (no bookmarks yet)
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons name="bookmark-outline" size={60} color={Colors.dark.secondaryText} style={styles.emptyIcon} />
-        <ThemedText variant="secondary" style={styles.emptyText}>No bookmarks yet</ThemedText>
+        <Ionicons
+          name="bookmark-outline"
+          size={60}
+          color={Colors.dark.secondaryText}
+          style={styles.emptyIcon}
+        />
+        <ThemedText variant="secondary" style={styles.emptyText}>
+          No bookmarks yet
+        </ThemedText>
         <ThemedText variant="tertiary" style={styles.emptySubText}>
           Bookmarked words will appear here
         </ThemedText>
@@ -172,7 +187,7 @@ export default function Bookmarks() {
   const handleRefresh = useCallback(() => {
     retryLoading();
   }, [retryLoading]);
-  
+
   return (
     <ThemedView style={styles.container}>
       {bookmarks.length > 0 ? (
@@ -193,7 +208,9 @@ export default function Bookmarks() {
             />
           }
         />
-      ) : renderEmptyComponent()}
+      ) : (
+        renderEmptyComponent()
+      )}
     </ThemedView>
   );
 }

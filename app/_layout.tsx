@@ -8,15 +8,15 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.container}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen 
-          name="+not-found" 
-          options={{ 
+        <Stack.Screen
+          name="+not-found"
+          options={{
             headerTitle: 'Not Found',
             headerLargeTitleShadowVisible: false,
             headerTitleStyle: {
-              fontWeight: '600'
-            }
-          }} 
+              fontWeight: '600',
+            },
+          }}
         />
       </Stack>
       <StatusBar style="light" />

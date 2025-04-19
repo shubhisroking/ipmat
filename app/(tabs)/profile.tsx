@@ -10,46 +10,48 @@ export default function Settings() {
   return (
     <ThemedView style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
-        <ThemedText style={styles.sectionHeader} variant="secondary">ABOUT</ThemedText>
-        
+        <ThemedText style={styles.sectionHeader} variant="secondary">
+          ABOUT
+        </ThemedText>
+
         <ThemedView variant="secondary" style={styles.card}>
           <TouchableOpacity style={styles.linkRow}>
             <Ionicons name="help-circle-outline" size={22} color={Colors.dark.systemBlue} />
             <ThemedText style={styles.linkText}>Help & Support</ThemedText>
-            <Ionicons 
-              name="chevron-forward" 
-              size={16} 
-              color={Colors.dark.tertiaryText} 
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color={Colors.dark.tertiaryText}
               style={styles.chevron}
             />
           </TouchableOpacity>
-          
+
           <View style={[styles.separator, { backgroundColor: Colors.dark.separator }]} />
-          
+
           <TouchableOpacity style={styles.linkRow}>
             <Ionicons name="document-text-outline" size={22} color={Colors.dark.systemBlue} />
             <ThemedText style={styles.linkText}>Privacy Policy</ThemedText>
-            <Ionicons 
-              name="chevron-forward" 
-              size={16} 
-              color={Colors.dark.tertiaryText} 
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color={Colors.dark.tertiaryText}
               style={styles.chevron}
             />
           </TouchableOpacity>
-            <View style={[styles.separator, { backgroundColor: Colors.dark.separator }]} />
-          
+          <View style={[styles.separator, { backgroundColor: Colors.dark.separator }]} />
+
           <TouchableOpacity style={styles.linkRow} onPress={() => router.push('/about')}>
             <Ionicons name="information-circle-outline" size={22} color={Colors.dark.systemBlue} />
             <ThemedText style={styles.linkText}>About</ThemedText>
-            <Ionicons 
-              name="chevron-forward" 
-              size={16} 
-              color={Colors.dark.tertiaryText} 
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color={Colors.dark.tertiaryText}
               style={styles.chevron}
             />
           </TouchableOpacity>
         </ThemedView>
-        
+
         <ThemedText style={styles.versionText} variant="tertiary">
           Version 1.0.0
         </ThemedText>

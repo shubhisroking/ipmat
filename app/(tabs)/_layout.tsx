@@ -24,7 +24,8 @@ export default function TabLayout() {
     }
 
     prepare();
-  }, []);  return (
+  }, []);
+  return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors.dark.tint,
@@ -56,25 +57,24 @@ export default function TabLayout() {
         headerTintColor: Colors.dark.text,
         // Custom header component to mimic Samsung One UI styling
         headerBackground: () => (
-          <View 
-            style={{ 
-              backgroundColor: Colors.dark.background, 
+          <View
+            style={{
+              backgroundColor: Colors.dark.background,
               height: '100%',
               borderBottomColor: 'rgba(255, 255, 255, 0.05)',
               borderBottomWidth: 1,
-            }} 
+            }}
           />
         ),
         tabBarStyle: {
           backgroundColor: Colors.dark.background,
-          borderTopWidth: 0, 
-          elevation: 0, 
-          height: 88, 
-          paddingBottom: 30, 
+          borderTopWidth: 0,
+          elevation: 0,
+          height: 88,
+          paddingBottom: 30,
           paddingTop: 10,
         },
-      }}
-    >
+      }}>
       <Tabs.Screen
         name="index"
         options={{

@@ -48,16 +48,12 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
   const [pressedButton, setPressedButton] = useState<string | null>(null);
 
   const isBookmarked = useBookmarkStore(
-    useCallback((state) => state.isBookmarked(word.id), [word.id])
+    useCallback((state) => state.isBookmarked(word.id), [word.id]),
   );
 
-  const addBookmark = useBookmarkStore(
-    useCallback((state) => state.addBookmark, [])
-  );
+  const addBookmark = useBookmarkStore(useCallback((state) => state.addBookmark, []));
 
-  const removeBookmark = useBookmarkStore(
-    useCallback((state) => state.removeBookmark, [])
-  );
+  const removeBookmark = useBookmarkStore(useCallback((state) => state.removeBookmark, []));
 
   const scaleDislike = useSharedValue(1);
   const scaleLike = useSharedValue(1);
@@ -65,53 +61,44 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
 
   const doneOpacity = useSharedValue(0);
   const reviewLaterOpacity = useSharedValue(0);
-  
+
   // Memoize static style combinations to avoid recreating style arrays on each render
   const memoizedDislikeButtonStyle = useMemo(() => {
-    return [
-      styles.actionButton,
-      styles.dislikeButton,
-    ];
+    return [styles.actionButton, styles.dislikeButton];
   }, []);
-  
+
   const memoizedLikeButtonStyle = useMemo(() => {
-    return [
-      styles.actionButton,
-      styles.likeButton,
-    ];
+    return [styles.actionButton, styles.likeButton];
   }, []);
-  
+
   const memoizedBookmarkButtonStyle = useMemo(() => {
-    return [
-      styles.actionButton,
-      styles.bookmarkButton,
-    ];
+    return [styles.actionButton, styles.bookmarkButton];
   }, []);
-  
+
   // Memoize decision label styles
   const memoizedDoneLabelStyle = useMemo(() => {
     return [styles.decisionLabel, styles.doneLabel];
   }, []);
-  
+
   const memoizedReviewLaterLabelStyle = useMemo(() => {
     return [styles.decisionLabel, styles.reviewLaterLabel];
   }, []);
 
   // Dynamically update button styles based on pressed state
   const dislikeButtonFinalStyle = useMemo(() => {
-    return pressedButton === 'dislike' 
+    return pressedButton === 'dislike'
       ? [...memoizedDislikeButtonStyle, styles.actionButtonPressed]
       : memoizedDislikeButtonStyle;
   }, [pressedButton, memoizedDislikeButtonStyle]);
-  
+
   const likeButtonFinalStyle = useMemo(() => {
-    return pressedButton === 'like' 
+    return pressedButton === 'like'
       ? [...memoizedLikeButtonStyle, styles.actionButtonPressed]
       : memoizedLikeButtonStyle;
   }, [pressedButton, memoizedLikeButtonStyle]);
-  
+
   const bookmarkButtonFinalStyle = useMemo(() => {
-    return pressedButton === 'bookmark' 
+    return pressedButton === 'bookmark'
       ? [...memoizedBookmarkButtonStyle, styles.actionButtonPressed]
       : memoizedBookmarkButtonStyle;
   }, [pressedButton, memoizedBookmarkButtonStyle]);
@@ -121,23 +108,21 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
       translateX.value,
       [-screenWidth / 2, 0, screenWidth / 2],
       [-ROTATION_ANGLE, 0, ROTATION_ANGLE],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     );
 
-    
     const rotateY = interpolate(
       translateX.value,
       [-screenWidth / 2, 0, screenWidth / 2],
       [5, 0, -5],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     );
 
-    
     const shadowOpacity = interpolate(
       Math.abs(translateX.value),
       [0, screenWidth / 4],
       [0.1, 0.25],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     );
 
     return {
@@ -165,43 +150,32 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
     transform: [{ scale: scaleBookmark.value }],
   }));
 
-  
   const doneStyle = useAnimatedStyle(() => ({
     opacity: doneOpacity.value,
     transform: [
-      { 
-        scale: interpolate(
-          doneOpacity.value, 
-          [0, 1], 
-          [0.8, 1], 
-          Extrapolate.CLAMP
-        ) 
-      }
-    ]
+      {
+        scale: interpolate(doneOpacity.value, [0, 1], [0.8, 1], Extrapolate.CLAMP),
+      },
+    ],
   }));
 
   const reviewLaterStyle = useAnimatedStyle(() => ({
     opacity: reviewLaterOpacity.value,
     transform: [
-      { 
-        scale: interpolate(
-          reviewLaterOpacity.value, 
-          [0, 1], 
-          [0.8, 1], 
-          Extrapolate.CLAMP
-        ) 
-      }
-    ]
+      {
+        scale: interpolate(reviewLaterOpacity.value, [0, 1], [0.8, 1], Extrapolate.CLAMP),
+      },
+    ],
   }));
 
   // Store the current screen width in a shared value that can be accessed in gesture callbacks
   const screenWidthShared = useSharedValue(screenWidth);
-  
+
   // Update the shared value when the actual screen width changes
   useEffect(() => {
     screenWidthShared.value = screenWidth;
   }, [screenWidth, screenWidthShared]);
-  
+
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
@@ -214,17 +188,11 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
         .onUpdate((event) => {
           translateX.value = context.value.startX + event.translationX;
           translateY.value = context.value.startY + event.translationY;
-          
-          
+
           if (event.translationX > 50) {
             doneOpacity.value = withTiming(
-              interpolate(
-                event.translationX,
-                [50, SWIPE_THRESHOLD],
-                [0, 1],
-                Extrapolate.CLAMP
-              ),
-              { duration: 100 }
+              interpolate(event.translationX, [50, SWIPE_THRESHOLD], [0, 1], Extrapolate.CLAMP),
+              { duration: 100 },
             );
             reviewLaterOpacity.value = withTiming(0, { duration: 100 });
           } else if (event.translationX < -50) {
@@ -233,17 +201,16 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
                 Math.abs(event.translationX),
                 [50, SWIPE_THRESHOLD],
                 [0, 1],
-                Extrapolate.CLAMP
+                Extrapolate.CLAMP,
               ),
-              { duration: 100 }
+              { duration: 100 },
             );
             doneOpacity.value = withTiming(0, { duration: 100 });
           } else {
             doneOpacity.value = withTiming(0, { duration: 100 });
             reviewLaterOpacity.value = withTiming(0, { duration: 100 });
           }
-          
-          
+
           const direction = event.translationX > 0 ? 'right' : 'left';
           if (direction === 'right' && event.translationX > 50) {
             scaleLike.value = withTiming(1.1, { duration: 100 });
@@ -258,34 +225,44 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
           scale.value = withTiming(1, { duration: 200 });
           doneOpacity.value = withTiming(0, { duration: 150 });
           reviewLaterOpacity.value = withTiming(0, { duration: 150 });
-          
+
           if (Math.abs(event.translationX) > SWIPE_THRESHOLD) {
             const direction = event.translationX > 0 ? 'right' : 'left';
-            
-            
+
             opacity.value = withTiming(0, { duration: 300 });
             scale.value = withTiming(0.8, { duration: 300 });
-            
+
             translateX.value = withSpring(
-              Math.sign(event.translationX) * screenWidthShared.value * 1.5, 
-              SPRING_CONFIG
+              Math.sign(event.translationX) * screenWidthShared.value * 1.5,
+              SPRING_CONFIG,
             );
             translateY.value = withSpring(event.translationY, SPRING_CONFIG);
-            
-            
+
             runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
             runOnJS(onSwipe)(direction);
           } else {
-            
             translateX.value = withSpring(0, SPRING_CONFIG);
             translateY.value = withSpring(0, SPRING_CONFIG);
             scaleLike.value = withTiming(1, { duration: 150 });
             scaleDislike.value = withTiming(1, { duration: 150 });
-          }        }),
-    [isActive, onSwipe, context.value, translateX, translateY, scale, doneOpacity, reviewLaterOpacity, opacity, scaleLike, scaleDislike, screenWidthShared.value]
+          }
+        }),
+    [
+      isActive,
+      onSwipe,
+      context.value,
+      translateX,
+      translateY,
+      scale,
+      doneOpacity,
+      reviewLaterOpacity,
+      opacity,
+      scaleLike,
+      scaleDislike,
+      screenWidthShared.value,
+    ],
   );
 
-  
   useEffect(() => {
     if (isActive) {
       translateX.value = withSpring(0, SPRING_CONFIG);
@@ -296,7 +273,16 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
       doneOpacity.value = withTiming(0, TIMING_CONFIG);
       reviewLaterOpacity.value = withTiming(0, TIMING_CONFIG);
     }
-  }, [isActive, translateX, translateY, scaleBookmark, scale, opacity, doneOpacity, reviewLaterOpacity]);
+  }, [
+    isActive,
+    translateX,
+    translateY,
+    scaleBookmark,
+    scale,
+    opacity,
+    doneOpacity,
+    reviewLaterOpacity,
+  ]);
 
   const handleButtonPress = useCallback(
     (action: string) => {
@@ -307,7 +293,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
         case 'dislike':
           scaleDislike.value = withSequence(
             withTiming(1.3, { duration: 150 }),
-            withTiming(1, { duration: 150 })
+            withTiming(1, { duration: 150 }),
           );
           opacity.value = withTiming(0, { duration: 300 });
           scale.value = withTiming(0.8, { duration: 300 });
@@ -321,7 +307,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
         case 'like':
           scaleLike.value = withSequence(
             withTiming(1.3, { duration: 150 }),
-            withTiming(1, { duration: 150 })
+            withTiming(1, { duration: 150 }),
           );
           opacity.value = withTiming(0, { duration: 300 });
           scale.value = withTiming(0.8, { duration: 300 });
@@ -335,7 +321,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
         case 'bookmark':
           scaleBookmark.value = withSequence(
             withTiming(1.3, { duration: 150 }),
-            withTiming(1, { duration: 150 })
+            withTiming(1, { duration: 150 }),
           );
           if (isBookmarked) {
             removeBookmark(word.id);
@@ -349,8 +335,24 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
         setTimeout(() => setPressedButton(null), 300);
       } else {
         setTimeout(() => setPressedButton(null), 150);
-      }    },
-    [isBookmarked, addBookmark, removeBookmark, word, screenWidth, onSwipe, opacity, scale, translateX, doneOpacity, reviewLaterOpacity, scaleLike, scaleDislike, scaleBookmark]
+      }
+    },
+    [
+      isBookmarked,
+      addBookmark,
+      removeBookmark,
+      word,
+      screenWidth,
+      onSwipe,
+      opacity,
+      scale,
+      translateX,
+      doneOpacity,
+      reviewLaterOpacity,
+      scaleLike,
+      scaleDislike,
+      scaleBookmark,
+    ],
   );
 
   return (
@@ -360,11 +362,11 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
         <Animated.View style={[...memoizedDoneLabelStyle, doneStyle]}>
           <Text style={styles.decisionText}>DONE</Text>
         </Animated.View>
-        
+
         <Animated.View style={[...memoizedReviewLaterLabelStyle, reviewLaterStyle]}>
           <Text style={styles.decisionText}>REVIEW LATER</Text>
         </Animated.View>
-        
+
         <Text style={styles.wordText}>{word.word}</Text>
         <Text style={styles.meaningText}>{word.meaning}</Text>
 
@@ -373,8 +375,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
             <Pressable
               style={dislikeButtonFinalStyle}
               onPress={() => handleButtonPress('dislike')}
-              disabled={!isActive}
-            >
+              disabled={!isActive}>
               <Ionicons name="close" size={30} color="#FF453A" />
             </Pressable>
           </Animated.View>
@@ -383,8 +384,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
             <Pressable
               style={bookmarkButtonFinalStyle}
               onPress={() => handleButtonPress('bookmark')}
-              disabled={!isActive}
-            >
+              disabled={!isActive}>
               <Ionicons
                 name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
                 size={26}
@@ -397,8 +397,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
             <Pressable
               style={likeButtonFinalStyle}
               onPress={() => handleButtonPress('like')}
-              disabled={!isActive}
-            >
+              disabled={!isActive}>
               <Ionicons name="heart" size={26} color="#0A84FF" />
             </Pressable>
           </Animated.View>
@@ -413,7 +412,7 @@ const styles = StyleSheet.create({
     width: '90%',
     height: '70%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 20, 
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -422,28 +421,28 @@ const styles = StyleSheet.create({
       width: 0,
       height: 5,
     },
-    shadowOpacity: 0.1, 
+    shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 8,
     position: 'absolute',
-    
+
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.03)',
   },
   wordText: {
-    fontSize: 36, 
-    fontWeight: '500', 
+    fontSize: 36,
+    fontWeight: '500',
     marginBottom: 24,
     textAlign: 'center',
     color: '#000000',
     letterSpacing: -0.5,
   },
   meaningText: {
-    fontSize: 18, 
+    fontSize: 18,
     textAlign: 'center',
     color: '#3C3C43',
     opacity: 0.8,
-    lineHeight: 26, 
+    lineHeight: 26,
     letterSpacing: -0.2,
     maxWidth: '90%',
   },
@@ -497,7 +496,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     transform: [{ scale: 0.95 }],
   },
-  
+
   decisionLabel: {
     position: 'absolute',
     top: 45,

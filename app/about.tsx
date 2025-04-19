@@ -9,37 +9,38 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const AboutScreen = () => {
   const insets = useSafeAreaInsets();
-  
+
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen options={{ 
-        title: 'About',
-        headerStyle: {
-          backgroundColor: Colors.dark.background
-        },
-        headerTintColor: Colors.dark.text,
-        headerShadowVisible: false
-      }} />
-      <ScrollView 
-        style={styles.scrollView} 
-        contentContainerStyle={[
-          styles.contentContainer, 
-          { paddingBottom: insets.bottom + 20 }
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
+      <Stack.Screen
+        options={{
+          title: 'About',
+          headerStyle: {
+            backgroundColor: Colors.dark.background,
+          },
+          headerTintColor: Colors.dark.text,
+          headerShadowVisible: false,
+        }}
+      />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.contentContainer, { paddingBottom: insets.bottom + 20 }]}
+        showsVerticalScrollIndicator={false}>
         <View style={styles.headerSection}>
           <View style={styles.iconContainer}>
             <Ionicons name="book" size={60} color="#FFFFFF" style={styles.icon} />
           </View>
           <ThemedText style={styles.title}>IPMAT Vocab</ThemedText>
-          <ThemedText variant="tertiary" style={styles.version}>Version 1.0.0</ThemedText>
+          <ThemedText variant="tertiary" style={styles.version}>
+            Version 1.0.0
+          </ThemedText>
         </View>
         <ThemedView variant="secondary" style={styles.card}>
           <ThemedText style={styles.sectionTitle}>About this App</ThemedText>
           <ThemedText variant="secondary" style={styles.paragraph}>
-            IPMAT Vocab is designed to help students master essential vocabulary for the Integrated Program in Management Aptitude Test (IPMAT).
-            Our interactive flashcards make learning new words engaging and efficient.
+            IPMAT Vocab is designed to help students master essential vocabulary for the Integrated
+            Program in Management Aptitude Test (IPMAT). Our interactive flashcards make learning
+            new words engaging and efficient.
           </ThemedText>
         </ThemedView>
         <ThemedView variant="secondary" style={styles.card}>
@@ -64,7 +65,7 @@ const AboutScreen = () => {
       </ScrollView>
     </ThemedView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

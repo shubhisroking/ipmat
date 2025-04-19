@@ -14,7 +14,7 @@ export default function Index() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [_loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  
+
   // Initialize words on component mount
   useEffect(() => {
     const initializeWords = async () => {
@@ -24,54 +24,60 @@ export default function Index() {
       setWords(initialWords);
       setLoading(false);
     };
-    
+
     initializeWords();
   }, []);
-  
+
   // Load more words when approaching the end
   useEffect(() => {
     const loadMoreIfNeeded = async () => {
       // Load more when user is halfway through the current batch
       const loadThreshold = Math.floor(words.length * 0.7);
-      
-      if (currentIndex >= loadThreshold && !loadingMore && words.length < wordService.getTotalWordCount()) {
+
+      if (
+        currentIndex >= loadThreshold &&
+        !loadingMore &&
+        words.length < wordService.getTotalWordCount()
+      ) {
         setLoadingMore(true);
         const newWords = wordService.loadMoreWords(words.length);
-        setWords(prevWords => [...prevWords, ...newWords]);
+        setWords((prevWords) => [...prevWords, ...newWords]);
         setLoadingMore(false);
       }
     };
-    
+
     loadMoreIfNeeded();
   }, [currentIndex, words, loadingMore]);
 
-  const handleSwipe = useCallback((direction: 'left' | 'right') => {
-    console.log(`Swiped ${direction}: ${words[currentIndex]?.word}`);
-    setCurrentIndex((prevIndex) => prevIndex + 1);
-  }, [currentIndex, words]);
+  const handleSwipe = useCallback(
+    (direction: 'left' | 'right') => {
+      console.log(`Swiped ${direction}: ${words[currentIndex]?.word}`);
+      setCurrentIndex((prevIndex) => prevIndex + 1);
+    },
+    [currentIndex, words],
+  );
 
   const handleReset = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     console.log('Resetting words...');
     const shuffledWords = wordService.shuffleWords();
     setWords(shuffledWords.slice(0, 50)); // Load first 50 shuffled words
-    setCurrentIndex(0); 
+    setCurrentIndex(0);
   };
 
-  const intensity = 40; 
-    const renderCards = () => {
+  const intensity = 40;
+  const renderCards = () => {
     if (currentIndex >= words.length) {
       return (
         <BlurView intensity={intensity} tint="dark" style={styles.endBlurContainer}>
           <View style={styles.endContainer}>
             <ThemedText style={styles.endText}>No more words!</ThemedText>
-            <Pressable 
+            <Pressable
               style={({ pressed }) => [
                 styles.button,
-                { opacity: pressed ? 0.8 : 1, backgroundColor: Colors.dark.systemBlue }
+                { opacity: pressed ? 0.8 : 1, backgroundColor: Colors.dark.systemBlue },
               ]}
-              onPress={handleReset}
-            >
+              onPress={handleReset}>
               <Text style={styles.buttonText}>Start Over</Text>
             </Pressable>
           </View>
@@ -82,29 +88,21 @@ export default function Index() {
     // Only process the visible cards (much more efficient)
     const visibleCards = [];
     const endIndex = Math.min(currentIndex + MAX_VISIBLE_CARDS, words.length);
-    
+
     for (let i = currentIndex; i < endIndex; i++) {
       const word = words[i];
       const isTopCard = i === currentIndex;
-      
+
       visibleCards.push(
-        <WordCard
-          key={word.id}
-          word={word}
-          onSwipe={handleSwipe}
-          isActive={isTopCard}
-        />
+        <WordCard key={word.id} word={word} onSwipe={handleSwipe} isActive={isTopCard} />,
       );
     }
-    
+
     return visibleCards.reverse();
   };
-  
+
   return (
-    <View style={[
-      styles.container, 
-      { backgroundColor: Colors.dark.background }
-    ]}>
+    <View style={[styles.container, { backgroundColor: Colors.dark.background }]}>
       {renderCards()}
     </View>
   );

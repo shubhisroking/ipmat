@@ -48,16 +48,16 @@ class WordService {
   getWords(startIndex = 0, limit = BATCH_SIZE): Word[] {
     const endIndex = Math.min(startIndex + limit, allWords.length);
     return allWords.slice(startIndex, endIndex);
-  }  // Load more words - returns a batch starting from the given index
+  } // Load more words - returns a batch starting from the given index
   loadMoreWords(startIndex: number): Word[] {
     const newBatch = this.getWords(startIndex, BATCH_SIZE);
-    
+
     // Update the cached words array with new batch
     this.cachedWords = [...this.cachedWords, ...newBatch];
-    
+
     // Mark as dirty and queue a save operation
     this.queueSave();
-    
+
     return newBatch;
   }
 
@@ -75,12 +75,12 @@ class WordService {
   private queueSave(): void {
     // Mark the cache as dirty
     this.isDirty = true;
-    
+
     // Clear any existing timeout to avoid multiple saves
     if (this.saveTimeoutId) {
       clearTimeout(this.saveTimeoutId);
     }
-    
+
     // Set a new timeout to save after the debounce period
     this.saveTimeoutId = setTimeout(() => {
       if (this.isDirty) {
@@ -88,7 +88,7 @@ class WordService {
       }
     }, SAVE_DEBOUNCE_TIME);
   }
-  
+
   // Save the current word cache to AsyncStorage immediately
   private async saveCacheImmediately(): Promise<void> {
     try {
@@ -98,7 +98,7 @@ class WordService {
       console.error('Error saving word cache:', error);
     }
   }
-  
+
   // Save the current word cache to AsyncStorage with debouncing
   private saveCache(): void {
     this.queueSave();
