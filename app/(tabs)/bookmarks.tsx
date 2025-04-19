@@ -1,5 +1,13 @@
-import React, { useCallback } from 'react';
-import { StyleSheet, View, FlatList, Pressable, Alert } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { 
+  StyleSheet, 
+  View, 
+  FlatList, 
+  Pressable, 
+  Alert, 
+  ActivityIndicator, 
+  RefreshControl 
+} from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -7,24 +15,54 @@ import { Ionicons } from '@expo/vector-icons';
 import { useBookmarkStore } from '@/store/bookmarkStore';
 import * as Haptics from 'expo-haptics';
 
-
 type Word = {
   id: number | string;
   word: string;
   meaning: string;
 };
 
-
-const useBookmarks = () => {
-  const bookmarks = useBookmarkStore((state) => state.bookmarks);
-  const removeBookmark = useBookmarkStore((state) => state.removeBookmark);
+// Enhanced selectors to access all the new state properties
+const useBookmarksData = () => {
+  const bookmarks = useBookmarkStore(state => state.bookmarks);
+  const removeBookmark = useBookmarkStore(state => state.removeBookmark);
+  const isLoading = useBookmarkStore(state => state.isLoading);
+  const isLoadingMore = useBookmarkStore(state => state.isLoadingMore);
+  const loadingError = useBookmarkStore(state => state.loadingError);
+  const hasMoreToLoad = useBookmarkStore(state => state.hasMoreToLoad);
+  const loadMoreBookmarks = useBookmarkStore(state => state.loadMoreBookmarks);
+  const retryLoading = useBookmarkStore(state => state.retryLoading);
   
-  return { bookmarks, removeBookmark };
+  return { 
+    bookmarks, 
+    removeBookmark, 
+    isLoading, 
+    isLoadingMore, 
+    loadingError, 
+    hasMoreToLoad, 
+    loadMoreBookmarks,
+    retryLoading
+  };
 };
 
 export default function Bookmarks() {
-  const { bookmarks, removeBookmark } = useBookmarks();
+  const { 
+    bookmarks, 
+    removeBookmark, 
+    isLoading, 
+    isLoadingMore, 
+    loadingError, 
+    hasMoreToLoad, 
+    loadMoreBookmarks,
+    retryLoading 
+  } = useBookmarksData();
+  // Force load (useful for first visit or returning to the tab)
+  useEffect(() => {
+    if (!isLoading && bookmarks.length === 0 && !loadingError) {
+      retryLoading();
+    }
+  }, [isLoading, bookmarks.length, loadingError, retryLoading]);
 
+  // Handle bookmark removal
   const handleRemoveBookmark = useCallback((item: Word) => {
     Alert.alert(
       'Remove Bookmark',
@@ -43,6 +81,7 @@ export default function Bookmarks() {
     );
   }, [removeBookmark]);
 
+  // Render individual bookmark item
   const renderBookmarkItem = useCallback(({ item }: { item: Word }) => (
     <Pressable onPress={() => handleRemoveBookmark(item)}>
       <ThemedView variant="secondary" style={styles.card}>
@@ -55,18 +94,85 @@ export default function Bookmarks() {
     </Pressable>
   ), [handleRemoveBookmark]);
 
-  const renderEmptyComponent = useCallback(() => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="bookmark-outline" size={60} color={Colors.dark.secondaryText} style={styles.emptyIcon} />
-      <ThemedText variant="secondary" style={styles.emptyText}>No bookmarks yet</ThemedText>
-      <ThemedText variant="tertiary" style={styles.emptySubText}>
-        Bookmarked words will appear here
-      </ThemedText>
-    </View>
-  ), []);
+  // Handle loading more bookmarks when scrolling to the end
+  const handleEndReached = useCallback(() => {
+    if (!isLoadingMore && hasMoreToLoad) {
+      loadMoreBookmarks();
+    }
+  }, [isLoadingMore, hasMoreToLoad, loadMoreBookmarks]);
 
+  // Render the loading state at the bottom of the list
+  const renderFooter = useCallback(() => {
+    if (!isLoadingMore) return null;
+    
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={Colors.dark.systemBlue} />
+        <ThemedText variant="tertiary" style={styles.footerText}>
+          Loading more bookmarks...
+        </ThemedText>
+      </View>
+    );
+  }, [isLoadingMore]);
+
+  // Render an empty state (no bookmarks)
+  const renderEmptyComponent = useCallback(() => {
+    // Don't show empty state while loading
+    if (isLoading) {
+      return (
+        <View style={styles.emptyContainer}>
+          <ActivityIndicator size="large" color={Colors.dark.systemBlue} />
+          <ThemedText variant="secondary" style={[styles.emptyText, {marginTop: 16}]}>
+            Loading bookmarks...
+          </ThemedText>
+        </View>
+      );
+    }
+    
+    // Show error state if there was a loading error
+    if (loadingError) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="alert-circle-outline" size={60} color={Colors.dark.systemRed} style={styles.emptyIcon} />
+          <ThemedText variant="secondary" style={styles.emptyText}>
+            Error loading bookmarks
+          </ThemedText>
+          <ThemedText variant="tertiary" style={styles.emptySubText}>
+            {loadingError.message || 'Something went wrong'}
+          </ThemedText>
+          <Pressable 
+            style={styles.retryButton}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              retryLoading();
+            }}
+          >
+            <ThemedText style={styles.retryButtonText}>Try Again</ThemedText>
+          </Pressable>
+        </View>
+      );
+    }
+    
+    // Default empty state (no bookmarks yet)
+    return (
+      <View style={styles.emptyContainer}>
+        <Ionicons name="bookmark-outline" size={60} color={Colors.dark.secondaryText} style={styles.emptyIcon} />
+        <ThemedText variant="secondary" style={styles.emptyText}>No bookmarks yet</ThemedText>
+        <ThemedText variant="tertiary" style={styles.emptySubText}>
+          Bookmarked words will appear here
+        </ThemedText>
+      </View>
+    );
+  }, [isLoading, loadingError, retryLoading]);
+
+  // Extract key for FlatList
   const keyExtractor = useCallback((item: Word) => item.id.toString(), []);
 
+  // Pull-to-refresh functionality
+  const handleRefresh = useCallback(() => {
+    retryLoading();
+  }, [retryLoading]);
+  
   return (
     <ThemedView style={styles.container}>
       {bookmarks.length > 0 ? (
@@ -75,6 +181,17 @@ export default function Bookmarks() {
           keyExtractor={keyExtractor}
           renderItem={renderBookmarkItem}
           contentContainerStyle={styles.listContent}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.3} // Trigger when user is 30% from the end
+          ListFooterComponent={renderFooter}
+          refreshControl={
+            <RefreshControl
+              refreshing={isLoading}
+              onRefresh={handleRefresh}
+              tintColor={Colors.dark.systemBlue}
+              colors={[Colors.dark.systemBlue]}
+            />
+          }
         />
       ) : renderEmptyComponent()}
     </ThemedView>
@@ -127,5 +244,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     maxWidth: '80%',
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  footerText: {
+    marginLeft: 10,
+    fontSize: 14,
+  },
+  retryButton: {
+    backgroundColor: Colors.dark.systemBlue,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });

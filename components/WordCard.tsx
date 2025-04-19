@@ -15,7 +15,8 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useBookmarkStore } from '@/store/bookmarkStore';
-import { Image } from 'expo-image';
+import { Word } from '@/services/wordService';
+// Removing unused Image import
 
 const SWIPE_THRESHOLD = 120;
 const ROTATION_ANGLE = 15;
@@ -29,12 +30,6 @@ const SPRING_CONFIG = {
 const TIMING_CONFIG = {
   duration: 300,
   easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-};
-
-type Word = {
-  id: number;
-  word: string;
-  meaning: string;
 };
 
 type WordCardProps = {
@@ -68,11 +63,59 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
   const scaleLike = useSharedValue(1);
   const scaleBookmark = useSharedValue(1);
 
-  
   const doneOpacity = useSharedValue(0);
   const reviewLaterOpacity = useSharedValue(0);
-
   
+  // Memoize static style combinations to avoid recreating style arrays on each render
+  const memoizedDislikeButtonStyle = useMemo(() => {
+    return [
+      styles.actionButton,
+      styles.dislikeButton,
+    ];
+  }, []);
+  
+  const memoizedLikeButtonStyle = useMemo(() => {
+    return [
+      styles.actionButton,
+      styles.likeButton,
+    ];
+  }, []);
+  
+  const memoizedBookmarkButtonStyle = useMemo(() => {
+    return [
+      styles.actionButton,
+      styles.bookmarkButton,
+    ];
+  }, []);
+  
+  // Memoize decision label styles
+  const memoizedDoneLabelStyle = useMemo(() => {
+    return [styles.decisionLabel, styles.doneLabel];
+  }, []);
+  
+  const memoizedReviewLaterLabelStyle = useMemo(() => {
+    return [styles.decisionLabel, styles.reviewLaterLabel];
+  }, []);
+
+  // Dynamically update button styles based on pressed state
+  const dislikeButtonFinalStyle = useMemo(() => {
+    return pressedButton === 'dislike' 
+      ? [...memoizedDislikeButtonStyle, styles.actionButtonPressed]
+      : memoizedDislikeButtonStyle;
+  }, [pressedButton, memoizedDislikeButtonStyle]);
+  
+  const likeButtonFinalStyle = useMemo(() => {
+    return pressedButton === 'like' 
+      ? [...memoizedLikeButtonStyle, styles.actionButtonPressed]
+      : memoizedLikeButtonStyle;
+  }, [pressedButton, memoizedLikeButtonStyle]);
+  
+  const bookmarkButtonFinalStyle = useMemo(() => {
+    return pressedButton === 'bookmark' 
+      ? [...memoizedBookmarkButtonStyle, styles.actionButtonPressed]
+      : memoizedBookmarkButtonStyle;
+  }, [pressedButton, memoizedBookmarkButtonStyle]);
+
   const cardStyle = useAnimatedStyle(() => {
     const rotateZ = interpolate(
       translateX.value,
@@ -151,6 +194,13 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
     ]
   }));
 
+  // Store the current screen width in a shared value that can be accessed in gesture callbacks
+  const screenWidthShared = useSharedValue(screenWidth);
+  
+  // Update the shared value when the actual screen width changes
+  useEffect(() => {
+    screenWidthShared.value = screenWidth;
+  }, [screenWidth, screenWidthShared]);
   
   const panGesture = useMemo(
     () =>
@@ -217,7 +267,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
             scale.value = withTiming(0.8, { duration: 300 });
             
             translateX.value = withSpring(
-              Math.sign(event.translationX) * screenWidth * 1.5, 
+              Math.sign(event.translationX) * screenWidthShared.value * 1.5, 
               SPRING_CONFIG
             );
             translateY.value = withSpring(event.translationY, SPRING_CONFIG);
@@ -231,9 +281,8 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
             translateY.value = withSpring(0, SPRING_CONFIG);
             scaleLike.value = withTiming(1, { duration: 150 });
             scaleDislike.value = withTiming(1, { duration: 150 });
-          }
-        }),
-    [isActive, screenWidth, onSwipe]
+          }        }),
+    [isActive, onSwipe, context.value, translateX, translateY, scale, doneOpacity, reviewLaterOpacity, opacity, scaleLike, scaleDislike, screenWidthShared.value]
   );
 
   
@@ -300,20 +349,19 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
         setTimeout(() => setPressedButton(null), 300);
       } else {
         setTimeout(() => setPressedButton(null), 150);
-      }
-    },
-    [isBookmarked, addBookmark, removeBookmark, word, screenWidth, onSwipe]
+      }    },
+    [isBookmarked, addBookmark, removeBookmark, word, screenWidth, onSwipe, opacity, scale, translateX, doneOpacity, reviewLaterOpacity, scaleLike, scaleDislike, scaleBookmark]
   );
 
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View style={[styles.card, cardStyle]}>
         {/* Decision indicators */}
-        <Animated.View style={[styles.decisionLabel, styles.doneLabel, doneStyle]}>
+        <Animated.View style={[...memoizedDoneLabelStyle, doneStyle]}>
           <Text style={styles.decisionText}>DONE</Text>
         </Animated.View>
         
-        <Animated.View style={[styles.decisionLabel, styles.reviewLaterLabel, reviewLaterStyle]}>
+        <Animated.View style={[...memoizedReviewLaterLabelStyle, reviewLaterStyle]}>
           <Text style={styles.decisionText}>REVIEW LATER</Text>
         </Animated.View>
         
@@ -323,11 +371,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
         <View style={styles.actionButtonsContainer}>
           <Animated.View style={[styles.actionButtonWrapper, dislikeButtonStyle]}>
             <Pressable
-              style={[
-                styles.actionButton,
-                styles.dislikeButton,
-                pressedButton === 'dislike' && styles.actionButtonPressed,
-              ]}
+              style={dislikeButtonFinalStyle}
               onPress={() => handleButtonPress('dislike')}
               disabled={!isActive}
             >
@@ -337,11 +381,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
 
           <Animated.View style={[styles.actionButtonWrapper, bookmarkButtonStyle]}>
             <Pressable
-              style={[
-                styles.actionButton,
-                styles.bookmarkButton,
-                pressedButton === 'bookmark' && styles.actionButtonPressed,
-              ]}
+              style={bookmarkButtonFinalStyle}
               onPress={() => handleButtonPress('bookmark')}
               disabled={!isActive}
             >
@@ -355,11 +395,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onSwipe, isActive }) => {
 
           <Animated.View style={[styles.actionButtonWrapper, likeButtonStyle]}>
             <Pressable
-              style={[
-                styles.actionButton,
-                styles.likeButton,
-                pressedButton === 'like' && styles.actionButtonPressed,
-              ]}
+              style={likeButtonFinalStyle}
               onPress={() => handleButtonPress('like')}
               disabled={!isActive}
             >
