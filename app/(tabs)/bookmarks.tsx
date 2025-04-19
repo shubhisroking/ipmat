@@ -21,46 +21,33 @@ type Word = {
   meaning: string;
 };
 
-// Enhanced selectors to access all the new state properties
+// Simplified selectors
 const useBookmarksData = () => {
   const bookmarks = useBookmarkStore((state) => state.bookmarks);
   const removeBookmark = useBookmarkStore((state) => state.removeBookmark);
   const isLoading = useBookmarkStore((state) => state.isLoading);
-  const isLoadingMore = useBookmarkStore((state) => state.isLoadingMore);
   const loadingError = useBookmarkStore((state) => state.loadingError);
-  const hasMoreToLoad = useBookmarkStore((state) => state.hasMoreToLoad);
-  const loadMoreBookmarks = useBookmarkStore((state) => state.loadMoreBookmarks);
   const retryLoading = useBookmarkStore((state) => state.retryLoading);
 
   return {
     bookmarks,
     removeBookmark,
     isLoading,
-    isLoadingMore,
     loadingError,
-    hasMoreToLoad,
-    loadMoreBookmarks,
     retryLoading,
   };
 };
 
+// Make sure this component is properly exported
 export default function Bookmarks() {
-  const {
-    bookmarks,
-    removeBookmark,
-    isLoading,
-    isLoadingMore,
-    loadingError,
-    hasMoreToLoad,
-    loadMoreBookmarks,
-    retryLoading,
-  } = useBookmarksData();
-  // Force load (useful for first visit or returning to the tab)
+  const { bookmarks, removeBookmark, isLoading, loadingError, retryLoading } = useBookmarksData();
+
+  // Force load on first visit or when returning to tab
   useEffect(() => {
     if (!isLoading && bookmarks.length === 0 && !loadingError) {
       retryLoading();
     }
-  }, [isLoading, bookmarks.length, loadingError, retryLoading]);
+  }, []);
 
   // Handle bookmark removal
   const handleRemoveBookmark = useCallback(
@@ -98,30 +85,9 @@ export default function Bookmarks() {
     [handleRemoveBookmark],
   );
 
-  // Handle loading more bookmarks when scrolling to the end
-  const handleEndReached = useCallback(() => {
-    if (!isLoadingMore && hasMoreToLoad) {
-      loadMoreBookmarks();
-    }
-  }, [isLoadingMore, hasMoreToLoad, loadMoreBookmarks]);
-
-  // Render the loading state at the bottom of the list
-  const renderFooter = useCallback(() => {
-    if (!isLoadingMore) return null;
-
-    return (
-      <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={Colors.dark.systemBlue} />
-        <ThemedText variant="tertiary" style={styles.footerText}>
-          Loading more bookmarks...
-        </ThemedText>
-      </View>
-    );
-  }, [isLoadingMore]);
-
-  // Render an empty state (no bookmarks)
+  // Render empty component (loading, error, or no bookmarks)
   const renderEmptyComponent = useCallback(() => {
-    // Don't show empty state while loading
+    // Show loading spinner
     if (isLoading) {
       return (
         <View style={styles.emptyContainer}>
@@ -147,7 +113,7 @@ export default function Bookmarks() {
             Error loading bookmarks
           </ThemedText>
           <ThemedText variant="tertiary" style={styles.emptySubText}>
-            {loadingError.message || 'Something went wrong'}
+            {loadingError || 'Something went wrong'}
           </ThemedText>
           <Pressable
             style={styles.retryButton}
@@ -196,9 +162,6 @@ export default function Bookmarks() {
           keyExtractor={keyExtractor}
           renderItem={renderBookmarkItem}
           contentContainerStyle={styles.listContent}
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.3} // Trigger when user is 30% from the end
-          ListFooterComponent={renderFooter}
           refreshControl={
             <RefreshControl
               refreshing={isLoading}
@@ -261,16 +224,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     maxWidth: '80%',
-  },
-  footerLoader: {
-    paddingVertical: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  footerText: {
-    marginLeft: 10,
-    fontSize: 14,
   },
   retryButton: {
     backgroundColor: Colors.dark.systemBlue,

@@ -1,9 +1,8 @@
-// filepath: c:\Users\shubh\Documents\cider\ipmat\app\(tabs)\_layout.tsx
 import { Tabs } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/Colors';
 import { Platform, View } from 'react-native';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 
 // Keep the splash screen visible while we fetch resources
@@ -70,9 +69,10 @@ export default function TabLayout() {
           backgroundColor: Colors.dark.background,
           borderTopWidth: 0,
           elevation: 0,
-          height: 88,
-          paddingBottom: 30,
-          paddingTop: 10,
+          height: 60, // Reduced height to make sure tabs are visible
+          paddingBottom: 10,
+          paddingTop: 5,
+          display: 'flex', // Ensure tabs are displayed
         },
       }}>
       <Tabs.Screen

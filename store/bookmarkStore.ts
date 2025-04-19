@@ -1,250 +1,178 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { persist, createJSONStorage } from 'zustand/middleware';
 
+// Define types
 type Word = {
   id: number | string;
   word: string;
   meaning: string;
 };
 
-// Custom error types for better error handling
-enum BookmarkErrorType {
-  LOAD_ERROR = 'LOAD_ERROR',
-  PARSE_ERROR = 'PARSE_ERROR',
-  SAVE_ERROR = 'SAVE_ERROR',
-}
-
-interface BookmarkError {
-  type: BookmarkErrorType;
-  message: string;
-  originalError?: Error;
-}
-
 interface BookmarkState {
   bookmarks: Word[];
-  bookmarkMap: Record<string, boolean>; // Fast lookup map for bookmarked items
-  isLoading: boolean; // Loading state for UI feedback
-  isLoadingMore: boolean; // For progressive loading
-  loadingError: BookmarkError | null; // Enhanced error handling
-  batch: number; // Current batch number for progressive loading
-  batchSize: number; // Number of bookmarks to load per batch
-  hasMoreToLoad: boolean; // Whether there are more bookmarks to load
+  isLoading: boolean;
+  loadingError: string | null;
 
   // Methods
   addBookmark: (word: Word) => void;
   removeBookmark: (wordId: number | string) => void;
   isBookmarked: (wordId: number | string) => boolean;
   loadBookmarks: () => Promise<void>;
-  loadMoreBookmarks: () => Promise<void>; // Progressive loading
-  retryLoading: () => Promise<void>; // For retrying after errors
+  retryLoading: () => Promise<void>;
+  clearAllBookmarks: () => Promise<void>;
 }
 
+// Storage key
 const STORAGE_KEY = 'wordBookmarks';
-const DEFAULT_BATCH_SIZE = 20; // Load 20 bookmarks at a time
 
-export const useBookmarkStore = create<BookmarkState>()(
-  persist(
-    (set, get) => ({
-      bookmarks: [],
-      bookmarkMap: {},
-      isLoading: false,
-      isLoadingMore: false,
-      loadingError: null,
-      batch: 0,
-      batchSize: DEFAULT_BATCH_SIZE,
-      hasMoreToLoad: false,
+export const useBookmarkStore = create<BookmarkState>((set, get) => ({
+  bookmarks: [],
+  isLoading: true, // Start with loading to fetch data on init
+  loadingError: null,
 
-      addBookmark: (word) => {
-        try {
-          const wordId = String(word.id); // Convert to string for consistent key type
-          if (!get().bookmarkMap[wordId]) {
-            set((state) => ({
-              bookmarks: [...state.bookmarks, word],
-              bookmarkMap: { ...state.bookmarkMap, [wordId]: true },
-              // Clear any previous error when successfully adding a bookmark
-              loadingError: null,
-            }));
-          }
-        } catch (error) {
-          console.error('Failed to add bookmark:', error);
-          set({
-            loadingError: {
-              type: BookmarkErrorType.SAVE_ERROR,
-              message: 'Failed to add bookmark',
-              originalError: error instanceof Error ? error : new Error(String(error)),
-            },
-          });
+  addBookmark: (word) => {
+    try {
+      const currentBookmarks = get().bookmarks;
+      const wordId = String(word.id);
+
+      // Check if it's already bookmarked
+      if (!currentBookmarks.some((b) => String(b.id) === wordId)) {
+        const newBookmarks = [...currentBookmarks, word];
+
+        // Save to AsyncStorage
+        AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newBookmarks)).catch((error) =>
+          console.error('Error saving bookmark:', error),
+        );
+
+        // Update state
+        set({ bookmarks: newBookmarks, loadingError: null });
+      }
+    } catch (error) {
+      console.error('Failed to add bookmark:', error);
+    }
+  },
+
+  removeBookmark: (wordId) => {
+    try {
+      const wordIdStr = String(wordId);
+      const newBookmarks = get().bookmarks.filter((b) => String(b.id) !== wordIdStr);
+
+      // Save to AsyncStorage
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newBookmarks)).catch((error) =>
+        console.error('Error removing bookmark:', error),
+      );
+
+      // Update state
+      set({ bookmarks: newBookmarks, loadingError: null });
+    } catch (error) {
+      console.error('Failed to remove bookmark:', error);
+    }
+  },
+
+  isBookmarked: (wordId) => {
+    const wordIdStr = String(wordId);
+    return get().bookmarks.some((b) => String(b.id) === wordIdStr);
+  },
+
+  loadBookmarks: async () => {
+    // Set loading state
+    set({ isLoading: true, loadingError: null });
+
+    try {
+      // Try to repair corrupted storage first
+      try {
+        const rawData = await AsyncStorage.getItem(STORAGE_KEY);
+
+        // Check for clearly corrupted data
+        if (
+          rawData &&
+          typeof rawData === 'string' &&
+          !rawData.startsWith('[') &&
+          !rawData.startsWith('{')
+        ) {
+          console.log('Corrupted bookmark data detected, resetting storage');
+          await AsyncStorage.removeItem(STORAGE_KEY);
         }
-      },
+      } catch (checkError) {
+        console.warn('Error checking bookmark storage integrity:', checkError);
+        // Continue anyway as we'll handle errors below
+      }
 
-      removeBookmark: (wordId) => {
-        try {
-          const wordIdStr = String(wordId); // Convert to string for consistent key type
-          set((state) => ({
-            bookmarks: state.bookmarks.filter((b) => String(b.id) !== wordIdStr),
-            bookmarkMap: { ...state.bookmarkMap, [wordIdStr]: false },
-            // Clear any previous error when successfully removing a bookmark
-            loadingError: null,
-          }));
-        } catch (error) {
-          console.error('Failed to remove bookmark:', error);
-          set({
-            loadingError: {
-              type: BookmarkErrorType.SAVE_ERROR,
-              message: 'Failed to remove bookmark',
-              originalError: error instanceof Error ? error : new Error(String(error)),
-            },
-          });
-        }
-      },
+      const storedData = await AsyncStorage.getItem(STORAGE_KEY);
 
-      isBookmarked: (wordId) => {
-        return !!get().bookmarkMap[String(wordId)];
-      },
+      if (!storedData) {
+        // No bookmarks stored yet
+        set({ bookmarks: [], isLoading: false });
+        return;
+      }
 
-      loadBookmarks: async () => {
-        // Set loading state to true
-        set({ isLoading: true, loadingError: null });
+      try {
+        // Parse stored bookmarks
+        const bookmarks = JSON.parse(storedData);
 
-        try {
-          const storedBookmarks = await AsyncStorage.getItem(STORAGE_KEY);
+        // Handle different potential data formats with better validation
+        let parsedBookmarks: Word[] = [];
 
-          if (!storedBookmarks) {
-            // No bookmarks stored yet, set initial state
-            set({
-              bookmarks: [],
-              bookmarkMap: {},
-              isLoading: false,
-              batch: 0,
-              hasMoreToLoad: false,
-            });
-            return;
-          }
-
-          // Try to parse the stored bookmarks
-          let parsedBookmarks;
-          try {
-            parsedBookmarks = JSON.parse(storedBookmarks);
-          } catch (parseError) {
-            throw {
-              type: BookmarkErrorType.PARSE_ERROR,
-              message: 'Could not parse saved bookmarks',
-              originalError: parseError,
-            };
-          }
-
-          // Validate the parsed data
-          if (!parsedBookmarks?.bookmarks || !Array.isArray(parsedBookmarks.bookmarks)) {
-            throw {
-              type: BookmarkErrorType.PARSE_ERROR,
-              message: 'Bookmarks data is not in the expected format',
-            };
-          }
-
-          const allBookmarks = parsedBookmarks.bookmarks;
-          const totalCount = allBookmarks.length;
-          const firstBatch = allBookmarks.slice(0, DEFAULT_BATCH_SIZE);
-
-          // Build the lookup map from all bookmarks (not just the first batch)
-          // This ensures isBookmarked works correctly even for items not yet loaded
-          const lookupMap: Record<string, boolean> = {};
-          allBookmarks.forEach((bookmark: Word) => {
-            lookupMap[String(bookmark.id)] = true;
-          });
-
-          set({
-            // Only load the first batch initially
-            bookmarks: firstBatch,
-            // But keep the full map for fast lookups
-            bookmarkMap: lookupMap,
-            isLoading: false,
-            batch: 1,
-            hasMoreToLoad: totalCount > DEFAULT_BATCH_SIZE,
-          });
-        } catch (error) {
-          console.error('Failed to load bookmarks from storage:', error);
-
-          // Set error state with detailed information
-          set({
-            isLoading: false,
-            loadingError: {
-              type: error.type || BookmarkErrorType.LOAD_ERROR,
-              message: error.message || 'Failed to load bookmarks',
-              originalError: error.originalError || error,
-            },
-            // Reset to empty state on error
-            bookmarks: [],
-            bookmarkMap: {},
-          });
-        }
-      },
-
-      loadMoreBookmarks: async () => {
-        const { batch, batchSize, isLoadingMore, hasMoreToLoad } = get();
-
-        // Don't do anything if already loading or no more bookmarks to load
-        if (isLoadingMore || !hasMoreToLoad) {
-          return;
+        if (Array.isArray(bookmarks)) {
+          // Direct array format
+          parsedBookmarks = bookmarks;
+        } else if (bookmarks?.bookmarks && Array.isArray(bookmarks.bookmarks)) {
+          // Object with bookmarks array
+          parsedBookmarks = bookmarks.bookmarks;
+        } else if (bookmarks?.state?.bookmarks && Array.isArray(bookmarks.state.bookmarks)) {
+          // Nested state object (zustand persist format)
+          parsedBookmarks = bookmarks.state.bookmarks;
+        } else {
+          // Unknown format - reset storage
+          console.error(
+            'Unknown bookmark data format:',
+            JSON.stringify(bookmarks).substring(0, 100),
+          );
+          await AsyncStorage.removeItem(STORAGE_KEY);
+          throw new Error('Bookmarks data is not in the expected format');
         }
 
-        set({ isLoadingMore: true, loadingError: null });
+        // Validate bookmark entries
+        const validBookmarks = parsedBookmarks.filter(
+          (item) =>
+            item &&
+            typeof item === 'object' &&
+            item.id !== undefined &&
+            typeof item.word === 'string' &&
+            typeof item.meaning === 'string',
+        );
 
-        try {
-          const storedBookmarks = await AsyncStorage.getItem(STORAGE_KEY);
+        // Update state with loaded bookmarks
+        set({ bookmarks: validBookmarks, isLoading: false });
+      } catch (parseError) {
+        console.error('Parse error with data:', storedData.substring(0, 100) + '...');
+        // Reset storage since it's corrupted
+        await AsyncStorage.removeItem(STORAGE_KEY);
+        throw parseError;
+      }
+    } catch (error) {
+      console.error('Failed to load bookmarks:', error);
+      set({
+        isLoading: false,
+        loadingError: error instanceof Error ? error.message : 'Failed to load bookmarks',
+        bookmarks: [], // Reset to empty array on error
+      });
+    }
+  },
 
-          if (!storedBookmarks) {
-            set({ isLoadingMore: false, hasMoreToLoad: false });
-            return;
-          }
+  retryLoading: async () => {
+    await get().loadBookmarks();
+  },
 
-          const parsedBookmarks = JSON.parse(storedBookmarks);
+  clearAllBookmarks: async () => {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEY);
+      set({ bookmarks: [], loadingError: null });
+    } catch (error) {
+      console.error('Failed to clear bookmarks:', error);
+    }
+  },
+}));
 
-          if (!parsedBookmarks?.bookmarks || !Array.isArray(parsedBookmarks.bookmarks)) {
-            throw {
-              type: BookmarkErrorType.PARSE_ERROR,
-              message: 'Bookmarks data is not in the expected format',
-            };
-          }
-
-          const allBookmarks = parsedBookmarks.bookmarks;
-          const startIndex = batch * batchSize;
-          const endIndex = startIndex + batchSize;
-          const newBatch = allBookmarks.slice(startIndex, endIndex);
-
-          set((state) => ({
-            // Append new batch to existing bookmarks
-            bookmarks: [...state.bookmarks, ...newBatch],
-            isLoadingMore: false,
-            batch: batch + 1,
-            // Check if there are more bookmarks to load
-            hasMoreToLoad: endIndex < allBookmarks.length,
-          }));
-        } catch (error) {
-          console.error('Failed to load more bookmarks:', error);
-
-          set({
-            isLoadingMore: false,
-            loadingError: {
-              type: error.type || BookmarkErrorType.LOAD_ERROR,
-              message: error.message || 'Failed to load more bookmarks',
-              originalError: error.originalError || error,
-            },
-          });
-        }
-      },
-
-      retryLoading: async () => {
-        // Clear previous error and retry loading
-        await get().loadBookmarks();
-      },
-    }),
-    {
-      name: STORAGE_KEY,
-      storage: createJSONStorage(() => AsyncStorage),
-    },
-  ),
-);
-
-// Initialize the bookmarks when the module is loaded
-console.log('Starting rehydration for bookmarks');
+// Initialize bookmarks when the module is loaded
+useBookmarkStore.getState().loadBookmarks();
