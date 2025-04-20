@@ -9,7 +9,7 @@ import { useSettingsStore } from '@/store/settingsStore';
 
 export default function Settings() {
   const { hapticsEnabled, toggleHaptics } = useSettingsStore();
-  
+
   return (
     <ThemedView style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
@@ -31,7 +31,7 @@ export default function Settings() {
             />
           </View>
         </ThemedView>
-        
+
         <ThemedText style={styles.sectionHeader} variant="secondary">
           ABOUT
         </ThemedText>
@@ -143,4 +143,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 24,
   },
-}); 
+});

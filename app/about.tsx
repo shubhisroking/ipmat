@@ -26,8 +26,8 @@ const AboutScreen = () => {
         contentContainerStyle={[styles.contentContainer, { paddingBottom: insets.bottom + 20 }]}
         showsVerticalScrollIndicator={false}>
         <View style={styles.headerSection}>
-          <Image 
-            source={require('@/assets/images/icon.png')} 
+          <Image
+            source={require('@/assets/images/icon.png')}
             style={styles.icon}
             resizeMode="contain"
           />
@@ -40,8 +40,8 @@ const AboutScreen = () => {
           <ThemedText style={styles.sectionTitle}>About this App</ThemedText>
           <ThemedText variant="secondary" style={styles.paragraph}>
             IPMAT Vocab is designed to help students master essential vocabulary for the Integrated
-            Program in Management Aptitude Test (IPMAT). Our app make learning
-            new words engaging and efficient.
+            Program in Management Aptitude Test (IPMAT). Our app make learning new words engaging
+            and efficient.
           </ThemedText>
         </ThemedView>
         <ThemedView variant="secondary" style={styles.card}>

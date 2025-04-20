@@ -1,5 +1,13 @@
 import React, { useCallback, memo } from 'react';
-import { StyleSheet, View, FlatList, Pressable, Text, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  FlatList,
+  Pressable,
+  Text,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Word, wordService } from '@/services/wordService';
 import { Colors } from '@/constants/Colors';
@@ -19,166 +27,191 @@ type WordListProps = {
 };
 
 // Memoize the WordItem component
-const WordItem = memo(({ 
-  item, 
-  onPress,
-  onMasteredToggle,
-  onImportantToggle,
-  showMasteredToggle = true,
-  showImportantToggle = true,
-  searchQuery = ''
-}: { 
-  item: Word; 
-  onPress: (word: Word) => void;
-  onMasteredToggle?: (word: Word, mastered: boolean) => void;
-  onImportantToggle?: (word: Word, important: boolean) => void;
-  showMasteredToggle?: boolean;
-  showImportantToggle?: boolean;
-  searchQuery?: string;
-}) => {
-  const handleMasteredToggle = useCallback((e: any) => {
-    e.stopPropagation();
-    if (onMasteredToggle) {
-      const newMasteredState = !item.mastered;
-      onMasteredToggle(item, newMasteredState);
-    }
-  }, [item, onMasteredToggle]);
+const WordItem = memo(
+  ({
+    item,
+    onPress,
+    onMasteredToggle,
+    onImportantToggle,
+    showMasteredToggle = true,
+    showImportantToggle = true,
+    searchQuery = '',
+  }: {
+    item: Word;
+    onPress: (word: Word) => void;
+    onMasteredToggle?: (word: Word, mastered: boolean) => void;
+    onImportantToggle?: (word: Word, important: boolean) => void;
+    showMasteredToggle?: boolean;
+    showImportantToggle?: boolean;
+    searchQuery?: string;
+  }) => {
+    const handleMasteredToggle = useCallback(
+      (e: any) => {
+        e.stopPropagation();
+        if (onMasteredToggle) {
+          const newMasteredState = !item.mastered;
+          onMasteredToggle(item, newMasteredState);
+        }
+      },
+      [item, onMasteredToggle],
+    );
 
-  const handleImportantToggle = useCallback((e: any) => {
-    e.stopPropagation();
-    if (onImportantToggle) {
-      const newImportantState = !item.important;
-      onImportantToggle(item, newImportantState);
-    }
-  }, [item, onImportantToggle]);
+    const handleImportantToggle = useCallback(
+      (e: any) => {
+        e.stopPropagation();
+        if (onImportantToggle) {
+          const newImportantState = !item.important;
+          onImportantToggle(item, newImportantState);
+        }
+      },
+      [item, onImportantToggle],
+    );
 
-  return (
-    <Pressable 
-      onPress={() => onPress(item)}
-      style={({ pressed }) => [
-        pressed ? styles.itemPressed : null
-      ]}
-    >
-      <ThemedView variant="secondary" style={[
-        styles.item,
-        item.important ? styles.importantItem : null,
-        item.mastered ? styles.masteredItem : null
-      ]}>
-        <View style={styles.wordContainer}>
-          <View style={styles.wordHeader}>
-            <Highlighter
-              text={item.word}
-              searchQuery={searchQuery}
-              textStyle={styles.wordText}
-              highlightStyle={styles.highlight}
-            />
-            <View style={styles.buttonContainer}>
-              {showImportantToggle && (
-                <Pressable 
-                  onPress={handleImportantToggle}
-                  style={[
-                    styles.iconButton, 
-                    styles.importantButton,
-                    item.important ? styles.importantActive : null
-                  ]}
-                  hitSlop={12}
-                >
-                  <Ionicons
-                    name={item.important ? "star" : "star-outline"}
-                    size={24}
-                    color={item.important ? Colors.dark.systemYellow : Colors.dark.secondaryText}
-                  />
-                </Pressable>
-              )}
-              {showMasteredToggle && (
-                <Pressable 
-                  onPress={handleMasteredToggle}
-                  style={[
-                    styles.iconButton,
-                    styles.masteredButton,
-                    item.mastered ? styles.masteredActive : null
-                  ]}
-                  hitSlop={12}
-                >
-                  <Ionicons
-                    name={item.mastered ? "radio-button-on" : "radio-button-off"}
-                    size={24}
-                    color={item.mastered ? Colors.dark.systemGreen : Colors.dark.secondaryText}
-                  />
-                </Pressable>
-              )}
+    return (
+      <Pressable
+        onPress={() => onPress(item)}
+        style={({ pressed }) => [pressed ? styles.itemPressed : null]}>
+        <ThemedView
+          variant="secondary"
+          style={[
+            styles.item,
+            item.important ? styles.importantItem : null,
+            item.mastered ? styles.masteredItem : null,
+          ]}>
+          <View style={styles.wordContainer}>
+            <View style={styles.wordHeader}>
+              <Highlighter
+                text={item.word}
+                searchQuery={searchQuery}
+                textStyle={styles.wordText}
+                highlightStyle={styles.highlight}
+              />
+              <View style={styles.buttonContainer}>
+                {showImportantToggle && (
+                  <Pressable
+                    onPress={handleImportantToggle}
+                    style={[
+                      styles.iconButton,
+                      styles.importantButton,
+                      item.important ? styles.importantActive : null,
+                    ]}
+                    hitSlop={12}>
+                    <Ionicons
+                      name={item.important ? 'star' : 'star-outline'}
+                      size={24}
+                      color={item.important ? Colors.dark.systemYellow : Colors.dark.secondaryText}
+                    />
+                  </Pressable>
+                )}
+                {showMasteredToggle && (
+                  <Pressable
+                    onPress={handleMasteredToggle}
+                    style={[
+                      styles.iconButton,
+                      styles.masteredButton,
+                      item.mastered ? styles.masteredActive : null,
+                    ]}
+                    hitSlop={12}>
+                    <Ionicons
+                      name={item.mastered ? 'radio-button-on' : 'radio-button-off'}
+                      size={24}
+                      color={item.mastered ? Colors.dark.systemGreen : Colors.dark.secondaryText}
+                    />
+                  </Pressable>
+                )}
+              </View>
             </View>
+            <View style={styles.divider} />
+            <Highlighter
+              text={item.meaning}
+              searchQuery={searchQuery}
+              textStyle={styles.meaningText}
+              highlightStyle={styles.highlight}
+              variant="secondary"
+            />
           </View>
-          <View style={styles.divider} />
-          <Highlighter
-            text={item.meaning}
-            searchQuery={searchQuery}
-            textStyle={styles.meaningText}
-            highlightStyle={styles.highlight}
-            variant="secondary"
-          />
-        </View>
-      </ThemedView>
-    </Pressable>
-  );
-});
+        </ThemedView>
+      </Pressable>
+    );
+  },
+);
 
-const WordList: React.FC<WordListProps> = ({ 
-  words, 
+const WordList: React.FC<WordListProps> = ({
+  words,
   onItemPress,
   onMasteredToggle,
   onImportantToggle,
   showMasteredToggle = true,
   showImportantToggle = true,
   searchQuery = '',
-  onScroll
+  onScroll,
 }) => {
-  const handlePressItem = useCallback((word: Word) => {
-    onItemPress?.(word);
-  }, [onItemPress]);
+  const handlePressItem = useCallback(
+    (word: Word) => {
+      onItemPress?.(word);
+    },
+    [onItemPress],
+  );
 
-  const handleMasteredToggle = useCallback((word: Word, mastered: boolean) => {
-    onMasteredToggle?.(word, mastered);
-  }, [onMasteredToggle]);
+  const handleMasteredToggle = useCallback(
+    (word: Word, mastered: boolean) => {
+      onMasteredToggle?.(word, mastered);
+    },
+    [onMasteredToggle],
+  );
 
-  const handleImportantToggle = useCallback((word: Word, important: boolean) => {
-    onImportantToggle?.(word, important);
-  }, [onImportantToggle]);
+  const handleImportantToggle = useCallback(
+    (word: Word, important: boolean) => {
+      onImportantToggle?.(word, important);
+    },
+    [onImportantToggle],
+  );
 
-  const renderItem = useCallback(({ item }: { item: Word }) => {
-    return (
-      <WordItem 
-        item={item}
-        onPress={handlePressItem}
-        onMasteredToggle={handleMasteredToggle}
-        onImportantToggle={handleImportantToggle}
-        showMasteredToggle={showMasteredToggle}
-        showImportantToggle={showImportantToggle}
-        searchQuery={searchQuery}
-      />
-    );
-  }, [handlePressItem, handleMasteredToggle, handleImportantToggle, showMasteredToggle, showImportantToggle, searchQuery]);
+  const renderItem = useCallback(
+    ({ item }: { item: Word }) => {
+      return (
+        <WordItem
+          item={item}
+          onPress={handlePressItem}
+          onMasteredToggle={handleMasteredToggle}
+          onImportantToggle={handleImportantToggle}
+          showMasteredToggle={showMasteredToggle}
+          showImportantToggle={showImportantToggle}
+          searchQuery={searchQuery}
+        />
+      );
+    },
+    [
+      handlePressItem,
+      handleMasteredToggle,
+      handleImportantToggle,
+      showMasteredToggle,
+      showImportantToggle,
+      searchQuery,
+    ],
+  );
 
   const keyExtractor = useCallback((item: Word) => item.id.toString(), []);
 
-  const emptyComponent = useCallback(() => (
-    <View style={styles.emptyContainer}>
-      <View style={styles.emptyIconContainer}>
-        <Ionicons
-          name="search-outline"
-          size={70}
-          color={Colors.dark.secondaryText}
-          style={styles.emptyIcon}
-        />
+  const emptyComponent = useCallback(
+    () => (
+      <View style={styles.emptyContainer}>
+        <View style={styles.emptyIconContainer}>
+          <Ionicons
+            name="search-outline"
+            size={70}
+            color={Colors.dark.secondaryText}
+            style={styles.emptyIcon}
+          />
+        </View>
+        <ThemedText style={styles.emptyText}>No matching words found</ThemedText>
+        <ThemedText variant="tertiary" style={styles.emptySubText}>
+          Try a different search term or filter
+        </ThemedText>
       </View>
-      <ThemedText style={styles.emptyText}>
-        No matching words found
-      </ThemedText>
-      <ThemedText variant="tertiary" style={styles.emptySubText}>
-        Try a different search term or filter
-      </ThemedText>
-    </View>
-  ), []);
+    ),
+    [],
+  );
 
   return (
     <FlatList
@@ -315,4 +348,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default memo(WordList); 
+export default memo(WordList);

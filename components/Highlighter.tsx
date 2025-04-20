@@ -15,7 +15,7 @@ const Highlighter: React.FC<HighlighterProps> = ({
   searchQuery,
   textStyle,
   highlightStyle,
-  variant
+  variant,
 }) => {
   const parts = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -25,9 +25,9 @@ const Highlighter: React.FC<HighlighterProps> = ({
     try {
       const regex = new RegExp(`(${searchQuery.trim()})`, 'gi');
       const parts = text.split(regex);
-      return parts.map(part => ({
+      return parts.map((part) => ({
         text: part,
-        highlight: part.toLowerCase() === searchQuery.toLowerCase()
+        highlight: part.toLowerCase() === searchQuery.toLowerCase(),
       }));
     } catch (error) {
       // If there's an error with the regex (e.g., invalid search query with special chars)
@@ -38,17 +38,17 @@ const Highlighter: React.FC<HighlighterProps> = ({
 
   return (
     <ThemedText variant={variant} style={textStyle}>
-      {parts.map((part, i) => (
+      {parts.map((part, i) =>
         part.highlight ? (
           <Text key={i} style={highlightStyle}>
             {part.text}
           </Text>
         ) : (
           part.text
-        )
-      ))}
+        ),
+      )}
     </ThemedText>
   );
 };
 
-export default React.memo(Highlighter); 
+export default React.memo(Highlighter);

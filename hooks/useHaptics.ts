@@ -10,7 +10,9 @@ export function useHaptics() {
     }
   };
 
-  const notification = async (type: Haptics.NotificationFeedbackType = Haptics.NotificationFeedbackType.Success) => {
+  const notification = async (
+    type: Haptics.NotificationFeedbackType = Haptics.NotificationFeedbackType.Success,
+  ) => {
     if (hapticsEnabled) {
       await Haptics.notificationAsync(type);
     }
@@ -27,4 +29,4 @@ export function useHaptics() {
     notification,
     selection,
   };
-} 
+}

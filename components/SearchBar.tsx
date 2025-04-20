@@ -1,16 +1,16 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  TextInput, 
-  Pressable, 
-  Platform, 
-  KeyboardAvoidingView, 
+import {
+  StyleSheet,
+  View,
+  TextInput,
+  Pressable,
+  Platform,
+  KeyboardAvoidingView,
   TextInputProps,
   Modal,
   ScrollView,
   Animated,
-  TouchableOpacity
+  TouchableOpacity,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/Colors';
@@ -37,11 +37,11 @@ interface FilterOptionProps {
 
 const DEBOUNCE_DELAY = 300; // milliseconds
 
-const SearchBar: React.FC<SearchBarProps> = ({ 
-  onSearch, 
-  placeholder = 'Search words...', 
+const SearchBar: React.FC<SearchBarProps> = ({
+  onSearch,
+  placeholder = 'Search words...',
   showFilters = true,
-  ...props 
+  ...props
 }) => {
   const [searchText, setSearchText] = useState('');
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
@@ -50,7 +50,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [showRecentSearches, setShowRecentSearches] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Animation values
   const inputWidth = useRef(new Animated.Value(1)).current;
   const containerOpacity = useRef(new Animated.Value(1)).current;
@@ -62,43 +62,49 @@ const SearchBar: React.FC<SearchBarProps> = ({
     // For now, we'll just use an in-memory array
   }, []);
 
-  const debouncedSearch = useCallback((text: string, currentFilters?: SearchFilters) => {
-    if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current);
-    }
-
-    debounceTimeout.current = setTimeout(() => {
-      onSearch(text, currentFilters || filters);
-      
-      // Add to recent searches if not empty and not already in the list
-      if (text && !recentSearches.includes(text)) {
-        const newSearches = [text, ...recentSearches.slice(0, 4)];
-        setRecentSearches(newSearches);
-        // Future enhancement: Save to AsyncStorage
+  const debouncedSearch = useCallback(
+    (text: string, currentFilters?: SearchFilters) => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
       }
-    }, DEBOUNCE_DELAY);
-  }, [onSearch, filters, recentSearches]);
 
-  const handleChangeText = useCallback((text: string) => {
-    setSearchText(text);
-    debouncedSearch(text);
-    
-    // Show recent searches dropdown if the input is focused but empty
-    const shouldShowRecent = text.length === 0 && isFocused;
-    setShowRecentSearches(shouldShowRecent);
-    
-    // Animate recent searches container
-    Animated.timing(recentSearchesHeight, {
-      toValue: shouldShowRecent && recentSearches.length > 0 ? 1 : 0,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-  }, [debouncedSearch, isFocused, recentSearches, recentSearchesHeight]);
+      debounceTimeout.current = setTimeout(() => {
+        onSearch(text, currentFilters || filters);
+
+        // Add to recent searches if not empty and not already in the list
+        if (text && !recentSearches.includes(text)) {
+          const newSearches = [text, ...recentSearches.slice(0, 4)];
+          setRecentSearches(newSearches);
+          // Future enhancement: Save to AsyncStorage
+        }
+      }, DEBOUNCE_DELAY);
+    },
+    [onSearch, filters, recentSearches],
+  );
+
+  const handleChangeText = useCallback(
+    (text: string) => {
+      setSearchText(text);
+      debouncedSearch(text);
+
+      // Show recent searches dropdown if the input is focused but empty
+      const shouldShowRecent = text.length === 0 && isFocused;
+      setShowRecentSearches(shouldShowRecent);
+
+      // Animate recent searches container
+      Animated.timing(recentSearchesHeight, {
+        toValue: shouldShowRecent && recentSearches.length > 0 ? 1 : 0,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    },
+    [debouncedSearch, isFocused, recentSearches, recentSearchesHeight],
+  );
 
   const handleClearSearch = useCallback(() => {
     setSearchText('');
     debouncedSearch('');
-    
+
     // Animate focus back to the input
     Animated.sequence([
       Animated.timing(containerOpacity, {
@@ -122,36 +128,42 @@ const SearchBar: React.FC<SearchBarProps> = ({
     setIsFilterModalVisible(false);
   }, []);
 
-  const handleFilterChange = useCallback((updatedFilters: SearchFilters) => {
-    setFilters(updatedFilters);
-    debouncedSearch(searchText, updatedFilters);
-  }, [searchText, debouncedSearch]);
+  const handleFilterChange = useCallback(
+    (updatedFilters: SearchFilters) => {
+      setFilters(updatedFilters);
+      debouncedSearch(searchText, updatedFilters);
+    },
+    [searchText, debouncedSearch],
+  );
 
-  const handleRecentSearchPress = useCallback((search: string) => {
-    setSearchText(search);
-    debouncedSearch(search);
-    setShowRecentSearches(false);
-    
-    // Animate recent searches container closed
-    Animated.timing(recentSearchesHeight, {
-      toValue: 0,
-      duration: 150,
-      useNativeDriver: false,
-    }).start();
-  }, [debouncedSearch, recentSearchesHeight]);
+  const handleRecentSearchPress = useCallback(
+    (search: string) => {
+      setSearchText(search);
+      debouncedSearch(search);
+      setShowRecentSearches(false);
+
+      // Animate recent searches container closed
+      Animated.timing(recentSearchesHeight, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: false,
+      }).start();
+    },
+    [debouncedSearch, recentSearchesHeight],
+  );
 
   const handleFocus = useCallback(() => {
     setIsFocused(true);
     const shouldShowRecent = searchText.length === 0 && recentSearches.length > 0;
     setShowRecentSearches(shouldShowRecent);
-    
+
     // Animate input expansion
     Animated.timing(inputWidth, {
       toValue: 1,
       duration: 200,
       useNativeDriver: false,
     }).start();
-    
+
     // Animate recent searches container
     Animated.timing(recentSearchesHeight, {
       toValue: shouldShowRecent ? 1 : 0,
@@ -162,7 +174,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   const handleBlur = useCallback(() => {
     setIsFocused(false);
-    
+
     // Animate input collapsing if empty
     if (searchText.length === 0) {
       Animated.timing(inputWidth, {
@@ -171,7 +183,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         useNativeDriver: false,
       }).start();
     }
-    
+
     // Delay hiding recent searches to allow for clicks
     setTimeout(() => {
       setShowRecentSearches(false);
@@ -190,19 +202,21 @@ const SearchBar: React.FC<SearchBarProps> = ({
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={10}
-      style={styles.keyboardAvoid}
-    >
+      style={styles.keyboardAvoid}>
       <Animated.View style={[styles.animatedContainer, { opacity: containerOpacity }]}>
-        <ThemedView variant="secondary" style={[
-          styles.container,
-          isFocused && styles.containerFocused
-        ]}>
+        <ThemedView
+          variant="secondary"
+          style={[styles.container, isFocused && styles.containerFocused]}>
           <View style={styles.searchContainer}>
-            <Ionicons 
-              name="search" 
-              size={20} 
-              color={isFocused || searchText.length > 0 ? Colors.dark.systemBlue : Colors.dark.secondaryText} 
-              style={styles.searchIcon} 
+            <Ionicons
+              name="search"
+              size={20}
+              color={
+                isFocused || searchText.length > 0
+                  ? Colors.dark.systemBlue
+                  : Colors.dark.secondaryText
+              }
+              style={styles.searchIcon}
             />
             <Animated.View style={[styles.inputContainer, { flex: inputWidth }]}>
               <TextInput
@@ -221,86 +235,77 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 {...props}
               />
             </Animated.View>
-            
+
             {searchText.length > 0 && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={handleClearSearch}
                 style={styles.clearButton}
-                activeOpacity={0.7}
-              >
+                activeOpacity={0.7}>
                 <View style={styles.clearButtonInner}>
-                  <Ionicons 
-                    name="close-circle" 
-                    size={18} 
-                    color={Colors.dark.secondaryText} 
-                  />
+                  <Ionicons name="close-circle" size={18} color={Colors.dark.secondaryText} />
                 </View>
               </TouchableOpacity>
             )}
-            
+
             {showFilters && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={handleFilterPress}
                 style={styles.filterButton}
-                activeOpacity={0.7}
-              >
+                activeOpacity={0.7}>
                 <View style={styles.filterIconContainer}>
-                  <Ionicons 
-                    name="options-outline" 
-                    size={20} 
-                    color={activeFilterCount > 0 ? Colors.dark.systemBlue : Colors.dark.secondaryText} 
+                  <Ionicons
+                    name="options-outline"
+                    size={20}
+                    color={
+                      activeFilterCount > 0 ? Colors.dark.systemBlue : Colors.dark.secondaryText
+                    }
                   />
                   {activeFilterCount > 0 && (
                     <View style={styles.filterBadge}>
-                      <ThemedText style={styles.filterBadgeText}>
-                        {activeFilterCount}
-                      </ThemedText>
+                      <ThemedText style={styles.filterBadgeText}>{activeFilterCount}</ThemedText>
                     </View>
                   )}
                 </View>
               </TouchableOpacity>
             )}
           </View>
-          
+
           {/* Recent searches dropdown */}
-          <Animated.View 
+          <Animated.View
             style={[
               styles.recentSearchesContainer,
               {
                 maxHeight: recentSearchesHeight.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [0, 200] // Maximum height of recent searches container
+                  outputRange: [0, 200], // Maximum height of recent searches container
                 }),
-                opacity: recentSearchesHeight
-              }
-            ]}
-          >
+                opacity: recentSearchesHeight,
+              },
+            ]}>
             {recentSearches.length > 0 && (
               <ThemedView variant="secondary" style={styles.recentSearchesContent}>
                 <View style={styles.recentHeaderRow}>
                   <ThemedText variant="secondary" style={styles.recentSearchesTitle}>
                     Recent Searches
                   </ThemedText>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     onPress={() => setRecentSearches([])}
-                    style={styles.clearRecentButton}
-                  >
+                    style={styles.clearRecentButton}>
                     <ThemedText variant="tertiary" style={styles.clearRecentText}>
                       Clear
                     </ThemedText>
                   </TouchableOpacity>
                 </View>
                 {recentSearches.map((search, index) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={index}
                     onPress={() => handleRecentSearchPress(search)}
                     style={styles.recentSearchItem}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons 
-                      name="time-outline" 
-                      size={16} 
-                      color={Colors.dark.secondaryText} 
+                    activeOpacity={0.7}>
+                    <Ionicons
+                      name="time-outline"
+                      size={16}
+                      color={Colors.dark.secondaryText}
                       style={styles.recentSearchIcon}
                     />
                     <ThemedText>{search}</ThemedText>
@@ -317,10 +322,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
         visible={isFilterModalVisible}
         transparent={true}
         animationType="slide"
-        onRequestClose={handleCloseFilters}
-      >
+        onRequestClose={handleCloseFilters}>
         <Pressable style={styles.modalOverlay} onPress={handleCloseFilters}>
-          <Pressable style={styles.modalContent} onPress={e => e.stopPropagation()}>
+          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
             <ThemedView style={styles.filtersContainer}>
               <View style={styles.filtersHeader}>
                 <ThemedText style={styles.filtersTitle}>Search Filters</ThemedText>
@@ -334,59 +338,55 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   label="Only Mastered Words"
                   value={filters.onlyMastered || false}
                   onToggle={() => {
-                    const updated = { 
-                      ...filters, 
+                    const updated = {
+                      ...filters,
                       onlyMastered: !filters.onlyMastered,
                       // Ensure mutually exclusive options
-                      onlyNotMastered: filters.onlyMastered ? filters.onlyNotMastered : false
+                      onlyNotMastered: filters.onlyMastered ? filters.onlyNotMastered : false,
                     };
                     handleFilterChange(updated);
                   }}
                 />
-                
+
                 <FilterOption
                   label="Only Not Mastered Words"
                   value={filters.onlyNotMastered || false}
                   onToggle={() => {
-                    const updated = { 
-                      ...filters, 
+                    const updated = {
+                      ...filters,
                       onlyNotMastered: !filters.onlyNotMastered,
                       // Ensure mutually exclusive options
-                      onlyMastered: filters.onlyNotMastered ? filters.onlyMastered : false
+                      onlyMastered: filters.onlyNotMastered ? filters.onlyMastered : false,
                     };
                     handleFilterChange(updated);
                   }}
                 />
-                
+
                 <FilterOption
                   label="Only Important Words"
                   value={filters.onlyImportant || false}
                   onToggle={() => {
-                    const updated = { 
-                      ...filters, 
-                      onlyImportant: !filters.onlyImportant 
+                    const updated = {
+                      ...filters,
+                      onlyImportant: !filters.onlyImportant,
                     };
                     handleFilterChange(updated);
                   }}
                 />
               </ScrollView>
-              
+
               <View style={styles.filterActions}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.resetButton}
                   onPress={() => {
                     const emptyFilters = {};
                     setFilters(emptyFilters);
                     debouncedSearch(searchText, emptyFilters);
-                  }}
-                >
+                  }}>
                   <ThemedText>Reset Filters</ThemedText>
                 </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={styles.applyButton}
-                  onPress={handleCloseFilters}
-                >
+
+                <TouchableOpacity style={styles.applyButton} onPress={handleCloseFilters}>
                   <ThemedText style={styles.applyButtonText}>Apply</ThemedText>
                 </TouchableOpacity>
               </View>
@@ -400,14 +400,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
 const FilterOption: React.FC<FilterOptionProps> = ({ label, value, onToggle }) => {
   return (
-    <TouchableOpacity 
-      style={styles.filterOption}
-      onPress={onToggle}
-      activeOpacity={0.7}
-    >
+    <TouchableOpacity style={styles.filterOption} onPress={onToggle} activeOpacity={0.7}>
       <ThemedText>{label}</ThemedText>
       <Ionicons
-        name={value ? "radio-button-on" : "radio-button-off"}
+        name={value ? 'radio-button-on' : 'radio-button-off'}
         size={24}
         color={value ? Colors.dark.systemBlue : Colors.dark.secondaryText}
       />
@@ -604,4 +600,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(SearchBar); 
+export default React.memo(SearchBar);

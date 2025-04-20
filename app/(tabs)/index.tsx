@@ -1,5 +1,15 @@
 import React, { useState, useCallback, useEffect, useMemo, memo, useRef } from 'react';
-import { StyleSheet, View, Pressable, Text, ActivityIndicator, ScrollView, Animated, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Pressable,
+  Text,
+  ActivityIndicator,
+  ScrollView,
+  Animated,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -9,12 +19,12 @@ import SearchBar, { SearchFilters } from '@/components/SearchBar';
 import { Ionicons } from '@expo/vector-icons';
 import { useHaptics } from '@/hooks/useHaptics';
 
-const WordDetailsModal = memo(({ word, onClose }: { word: Word | null, onClose: () => void }) => {
+const WordDetailsModal = memo(({ word, onClose }: { word: Word | null; onClose: () => void }) => {
   if (!word) return null;
-  
+
   return (
     <Pressable style={modalStyles.overlay} onPress={onClose}>
-      <Pressable style={modalStyles.content} onPress={e => e.stopPropagation()}>
+      <Pressable style={modalStyles.content} onPress={(e) => e.stopPropagation()}>
         <View style={modalStyles.header}>
           <ThemedText style={modalStyles.word}>{word.word}</ThemedText>
           <View style={modalStyles.statusContainer}>
@@ -127,187 +137,181 @@ const modalStyles = StyleSheet.create({
 });
 
 // Custom tab button component
-const TabButton = memo(({ 
-  title, 
-  isActive, 
-  onPress 
-}: { 
-  title: string, 
-  isActive: boolean, 
-  onPress: () => void 
-}) => {
-  return (
-    <Pressable
-      style={[
-        styles.tabButton,
-        isActive ? styles.activeTabButton : null
-      ]}
-      onPress={onPress}
-    >
-      <ThemedText 
-        style={[
-          styles.tabButtonText,
-          isActive ? styles.activeTabButtonText : styles.inactiveTabButtonText
-        ]}
-      >
-        {title}
-      </ThemedText>
-      {isActive && <View style={styles.activeTabIndicator} />}
-    </Pressable>
-  );
-});
+const TabButton = memo(
+  ({ title, isActive, onPress }: { title: string; isActive: boolean; onPress: () => void }) => {
+    return (
+      <Pressable
+        style={[styles.tabButton, isActive ? styles.activeTabButton : null]}
+        onPress={onPress}>
+        <ThemedText
+          style={[
+            styles.tabButtonText,
+            isActive ? styles.activeTabButtonText : styles.inactiveTabButtonText,
+          ]}>
+          {title}
+        </ThemedText>
+        {isActive && <View style={styles.activeTabIndicator} />}
+      </Pressable>
+    );
+  },
+);
 
-const WordListScreen = memo(({ 
-  title, 
-  getWords, 
-  loading 
-}: { 
-  title: string, 
-  getWords: () => Word[], 
-  loading: boolean 
-}) => {
-  const [words, setWords] = useState<Word[]>([]);
-  const [selectedWord, setSelectedWord] = useState<Word | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
-  const [showSearchBar, setShowSearchBar] = useState(true);
-  const lastScrollY = useRef(0);
-  const searchBarHeight = useRef(new Animated.Value(50)).current;
-  const searchBarOpacity = useRef(new Animated.Value(1)).current;
-  const { impact } = useHaptics();
+const WordListScreen = memo(
+  ({ title, getWords, loading }: { title: string; getWords: () => Word[]; loading: boolean }) => {
+    const [words, setWords] = useState<Word[]>([]);
+    const [selectedWord, setSelectedWord] = useState<Word | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
+    const [showSearchBar, setShowSearchBar] = useState(true);
+    const lastScrollY = useRef(0);
+    const searchBarHeight = useRef(new Animated.Value(50)).current;
+    const searchBarOpacity = useRef(new Animated.Value(1)).current;
+    const { impact } = useHaptics();
 
-  useEffect(() => {
-    if (!loading) {
-      setWords(getWords());
-    }
-  }, [getWords, loading]);
+    useEffect(() => {
+      if (!loading) {
+        setWords(getWords());
+      }
+    }, [getWords, loading]);
 
-  // Animation for showing/hiding search bar
-  useEffect(() => {
-    // Animate height and opacity
-    Animated.parallel([
-      Animated.timing(searchBarHeight, {
-        toValue: showSearchBar ? 66 : 0, // Account for container margins
-        duration: 250,
-        useNativeDriver: false,
-      }),
-      Animated.timing(searchBarOpacity, {
-        toValue: showSearchBar ? 1 : 0,
-        duration: 200,
-        useNativeDriver: false,
-      })
-    ]).start();
-  }, [showSearchBar, searchBarHeight, searchBarOpacity]);
+    // Animation for showing/hiding search bar
+    useEffect(() => {
+      // Animate height and opacity
+      Animated.parallel([
+        Animated.timing(searchBarHeight, {
+          toValue: showSearchBar ? 66 : 0, // Account for container margins
+          duration: 250,
+          useNativeDriver: false,
+        }),
+        Animated.timing(searchBarOpacity, {
+          toValue: showSearchBar ? 1 : 0,
+          duration: 200,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }, [showSearchBar, searchBarHeight, searchBarOpacity]);
 
-  const filteredWords = useMemo(() => {
-    if (!searchQuery && Object.keys(searchFilters).length === 0) {
-      return words;
-    }
-    
-    let result = words;
-    
-    // Apply text search filtering
-    if (searchQuery) {
-      result = result.filter(word => 
-        word.word.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        word.meaning.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    
-    // Apply additional filters
-    if (searchFilters.onlyMastered) {
-      result = result.filter(word => word.mastered);
-    } else if (searchFilters.onlyNotMastered) {
-      result = result.filter(word => !word.mastered);
-    }
-    
-    if (searchFilters.onlyImportant) {
-      result = result.filter(word => word.important);
-    }
-    
-    return result;
-  }, [words, searchQuery, searchFilters]);
+    const filteredWords = useMemo(() => {
+      if (!searchQuery && Object.keys(searchFilters).length === 0) {
+        return words;
+      }
 
-  const handleWordPress = useCallback((word: Word) => {
-    impact();
-    setSelectedWord(word);
-  }, [impact]);
+      let result = words;
 
-  const closeWordDetails = useCallback(() => {
-    setSelectedWord(null);
-  }, []);
+      // Apply text search filtering
+      if (searchQuery) {
+        result = result.filter(
+          (word) =>
+            word.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            word.meaning.toLowerCase().includes(searchQuery.toLowerCase()),
+        );
+      }
 
-  const handleSearch = useCallback((query: string, filters?: SearchFilters) => {
-    setSearchQuery(query);
-    if (filters) setSearchFilters(filters);
-  }, []);
+      // Apply additional filters
+      if (searchFilters.onlyMastered) {
+        result = result.filter((word) => word.mastered);
+      } else if (searchFilters.onlyNotMastered) {
+        result = result.filter((word) => !word.mastered);
+      }
 
-  const handleMasteredToggle = useCallback((word: Word, mastered: boolean) => {
-    impact();
-    wordService.toggleWordMastered(word.id);
-    // Refresh the list of words
-    setWords(getWords());
-  }, [getWords, impact]);
+      if (searchFilters.onlyImportant) {
+        result = result.filter((word) => word.important);
+      }
 
-  const handleImportantToggle = useCallback((word: Word, important: boolean) => {
-    impact();
-    wordService.toggleWordImportant(word.id);
-    // Refresh the list of words
-    setWords(getWords());
-  }, [getWords, impact]);
+      return result;
+    }, [words, searchQuery, searchFilters]);
 
-  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const currentScrollY = event.nativeEvent.contentOffset.y;
-    
-    // Only change visibility if scrolled more than 5 units to avoid flickering
-    const scrollDelta = Math.abs(currentScrollY - lastScrollY.current);
-    if (scrollDelta < 5) return;
-    
-    // Determine scroll direction
-    if (currentScrollY <= 0) {
-      // At the top, always show search bar
-      setShowSearchBar(true);
-    } else if (currentScrollY > lastScrollY.current + 3) { // Add a small threshold
-      // Scrolling down, hide search bar
-      setShowSearchBar(false);
-    } else if (currentScrollY < lastScrollY.current - 3) { // Add a small threshold
-      // Scrolling up, show search bar
-      setShowSearchBar(true);
-    }
-    
-    // Save last scroll position
-    lastScrollY.current = currentScrollY;
-  }, []);
+    const handleWordPress = useCallback(
+      (word: Word) => {
+        impact();
+        setSelectedWord(word);
+      },
+      [impact],
+    );
 
-  return (
-    <ThemedView style={styles.contentContainer}>
-      <Animated.View 
-        style={[
-          styles.searchBarContainer,
-          {
-            height: searchBarHeight,
-            opacity: searchBarOpacity,
-            overflow: 'hidden',
-            zIndex: 10
-          }
-        ]}
-      >
-        <SearchBar onSearch={handleSearch} />
-      </Animated.View>
-      <View style={styles.wordListContainer}>
-        <WordList 
-          words={filteredWords}
-          onItemPress={handleWordPress}
-          onMasteredToggle={handleMasteredToggle}
-          onImportantToggle={handleImportantToggle}
-          searchQuery={searchQuery}
-          onScroll={handleScroll}
-        />
-      </View>
-      <WordDetailsModal word={selectedWord} onClose={closeWordDetails} />
-    </ThemedView>
-  );
-});
+    const closeWordDetails = useCallback(() => {
+      setSelectedWord(null);
+    }, []);
+
+    const handleSearch = useCallback((query: string, filters?: SearchFilters) => {
+      setSearchQuery(query);
+      if (filters) setSearchFilters(filters);
+    }, []);
+
+    const handleMasteredToggle = useCallback(
+      (word: Word, mastered: boolean) => {
+        impact();
+        wordService.toggleWordMastered(word.id);
+        // Refresh the list of words
+        setWords(getWords());
+      },
+      [getWords, impact],
+    );
+
+    const handleImportantToggle = useCallback(
+      (word: Word, important: boolean) => {
+        impact();
+        wordService.toggleWordImportant(word.id);
+        // Refresh the list of words
+        setWords(getWords());
+      },
+      [getWords, impact],
+    );
+
+    const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const currentScrollY = event.nativeEvent.contentOffset.y;
+
+      // Only change visibility if scrolled more than 5 units to avoid flickering
+      const scrollDelta = Math.abs(currentScrollY - lastScrollY.current);
+      if (scrollDelta < 5) return;
+
+      // Determine scroll direction
+      if (currentScrollY <= 0) {
+        // At the top, always show search bar
+        setShowSearchBar(true);
+      } else if (currentScrollY > lastScrollY.current + 3) {
+        // Add a small threshold
+        // Scrolling down, hide search bar
+        setShowSearchBar(false);
+      } else if (currentScrollY < lastScrollY.current - 3) {
+        // Add a small threshold
+        // Scrolling up, show search bar
+        setShowSearchBar(true);
+      }
+
+      // Save last scroll position
+      lastScrollY.current = currentScrollY;
+    }, []);
+
+    return (
+      <ThemedView style={styles.contentContainer}>
+        <Animated.View
+          style={[
+            styles.searchBarContainer,
+            {
+              height: searchBarHeight,
+              opacity: searchBarOpacity,
+              overflow: 'hidden',
+              zIndex: 10,
+            },
+          ]}>
+          <SearchBar onSearch={handleSearch} />
+        </Animated.View>
+        <View style={styles.wordListContainer}>
+          <WordList
+            words={filteredWords}
+            onItemPress={handleWordPress}
+            onMasteredToggle={handleMasteredToggle}
+            onImportantToggle={handleImportantToggle}
+            searchQuery={searchQuery}
+            onScroll={handleScroll}
+          />
+        </View>
+        <WordDetailsModal word={selectedWord} onClose={closeWordDetails} />
+      </ThemedView>
+    );
+  },
+);
 
 function Index() {
   const [loading, setLoading] = useState(true);
@@ -316,7 +320,7 @@ function Index() {
   // Initialize words on component mount
   useEffect(() => {
     let isMounted = true;
-    
+
     const initializeWords = async () => {
       try {
         setLoading(true);
@@ -334,7 +338,7 @@ function Index() {
     };
 
     initializeWords();
-    
+
     // Cleanup function
     return () => {
       isMounted = false;
@@ -345,32 +349,36 @@ function Index() {
   const getAllWords = useCallback(() => wordService.getAllWords(), []);
   const getImportantWords = useCallback(() => wordService.getImportantWords(), []);
   const getMasteredWords = useCallback(() => wordService.getMasteredWords(), []);
-  const getImportantNotMasteredWords = useCallback(() => wordService.getImportantButNotMasteredWords(), []);
+  const getImportantNotMasteredWords = useCallback(
+    () => wordService.getImportantButNotMasteredWords(),
+    [],
+  );
 
   // Tab config
-  const tabs = useMemo(() => [
-    { title: 'All Words', getWords: getAllWords },
-    { title: 'Important', getWords: getImportantWords },
-    { title: 'Mastered', getWords: getMasteredWords },
-    { title: 'Important Not Mastered', getWords: getImportantNotMasteredWords }
-  ], [getAllWords, getImportantWords, getMasteredWords, getImportantNotMasteredWords]);
+  const tabs = useMemo(
+    () => [
+      { title: 'All Words', getWords: getAllWords },
+      { title: 'Important', getWords: getImportantWords },
+      { title: 'Mastered', getWords: getMasteredWords },
+      { title: 'Important Not Mastered', getWords: getImportantNotMasteredWords },
+    ],
+    [getAllWords, getImportantWords, getMasteredWords, getImportantNotMasteredWords],
+  );
 
   // Loading indicator
-  const loadingComponent = useMemo(() => (
-    loading ? (
-      <View style={styles.loadingOverlay}>
-        <ActivityIndicator size="large" color={Colors.dark.systemBlue} />
-        <ThemedText>Loading words...</ThemedText>
-      </View>
-    ) : null
-  ), [loading]);
+  const loadingComponent = useMemo(
+    () =>
+      loading ? (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={Colors.dark.systemBlue} />
+          <ThemedText>Loading words...</ThemedText>
+        </View>
+      ) : null,
+    [loading],
+  );
 
   if (loading) {
-    return (
-      <ThemedView style={styles.container}>
-        {loadingComponent}
-      </ThemedView>
-    );
+    return <ThemedView style={styles.container}>{loadingComponent}</ThemedView>;
   }
 
   return (
@@ -379,8 +387,7 @@ function Index() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabsScrollContent}
-        >
+          contentContainerStyle={styles.tabsScrollContent}>
           {tabs.map((tab, index) => (
             <TabButton
               key={index}
@@ -391,12 +398,12 @@ function Index() {
           ))}
         </ScrollView>
       </View>
-      
+
       {/* Display the active tab content */}
-      <WordListScreen 
-        title={tabs[activeTab].title} 
-        getWords={tabs[activeTab].getWords} 
-        loading={loading} 
+      <WordListScreen
+        title={tabs[activeTab].title}
+        getWords={tabs[activeTab].getWords}
+        loading={loading}
       />
     </ThemedView>
   );

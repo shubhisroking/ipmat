@@ -28,22 +28,22 @@ class WordService {
   // Initialize the service by loading saved words from AsyncStorage cache
   async init(): Promise<void> {
     if (this.isLoaded) return; // Prevent multiple initializations
-    
+
     try {
       const cachedWordsJson = await AsyncStorage.getItem(WORD_CACHE_KEY);
       const masteredWordsJson = await AsyncStorage.getItem(MASTERED_WORDS_KEY);
       const importantWordsJson = await AsyncStorage.getItem(WordService.IMPORTANT_WORDS_KEY);
-      
+
       if (masteredWordsJson) {
         const masteredIds = JSON.parse(masteredWordsJson);
         this.masteredWordsIds = new Set(masteredIds);
       }
-      
+
       if (importantWordsJson) {
         const importantIds = JSON.parse(importantWordsJson);
         this.importantWordsIds = new Set(importantIds);
       }
-      
+
       if (cachedWordsJson) {
         this.cachedWords = JSON.parse(cachedWordsJson);
         this.initializeWordMap();
@@ -65,15 +65,15 @@ class WordService {
     for (const word of this.cachedWords) {
       this.wordMap.set(word.id, word);
     }
-    
+
     // Pre-fill with all words for better performance
     for (const word of allWords) {
       if (!this.wordMap.has(word.id)) {
         // Clone the word to avoid modifying the original data
-        const wordWithFlags = { 
-          ...word, 
+        const wordWithFlags = {
+          ...word,
           mastered: this.masteredWordsIds.has(word.id),
-          important: this.importantWordsIds.has(word.id)
+          important: this.importantWordsIds.has(word.id),
         };
         this.wordMap.set(word.id, wordWithFlags);
       }
@@ -82,10 +82,10 @@ class WordService {
 
   // Load the initial batch of words
   async loadInitialBatch(): Promise<Word[]> {
-    this.cachedWords = allWords.slice(0, BATCH_SIZE).map(word => ({
+    this.cachedWords = allWords.slice(0, BATCH_SIZE).map((word) => ({
       ...word,
       mastered: this.masteredWordsIds.has(word.id),
-      important: this.importantWordsIds.has(word.id)
+      important: this.importantWordsIds.has(word.id),
     }));
     this.initializeWordMap();
     this.isLoaded = true;
@@ -97,97 +97,100 @@ class WordService {
   getWords(startIndex = 0, limit = BATCH_SIZE): Word[] {
     if (!this.isLoaded) {
       // Return from the original dataset if not loaded yet
-      return allWords.slice(startIndex, Math.min(startIndex + limit, allWords.length))
-        .map(word => ({
+      return allWords
+        .slice(startIndex, Math.min(startIndex + limit, allWords.length))
+        .map((word) => ({
           ...word,
           mastered: this.masteredWordsIds.has(word.id),
-          important: this.importantWordsIds.has(word.id)
+          important: this.importantWordsIds.has(word.id),
         }));
     }
-    
+
     // Return from the cached dataset for better performance
     const endIndex = Math.min(startIndex + limit, allWords.length);
-    return allWords.slice(startIndex, endIndex).map(word => ({
+    return allWords.slice(startIndex, endIndex).map((word) => ({
       ...word,
       mastered: this.masteredWordsIds.has(word.id),
-      important: this.importantWordsIds.has(word.id)
+      important: this.importantWordsIds.has(word.id),
     }));
   }
 
   // Get all words
   getAllWords(): Word[] {
-    return allWords.map(word => ({
+    return allWords.map((word) => ({
       ...word,
       mastered: this.masteredWordsIds.has(word.id),
-      important: this.importantWordsIds.has(word.id)
+      important: this.importantWordsIds.has(word.id),
     }));
   }
 
   // Get only mastered words
   getMasteredWords(): Word[] {
-    return allWords.filter(word => this.masteredWordsIds.has(word.id))
-      .map(word => ({
+    return allWords
+      .filter((word) => this.masteredWordsIds.has(word.id))
+      .map((word) => ({
         ...word,
-        mastered: true
+        mastered: true,
       }));
   }
 
   // Get important words
   getImportantWords(): Word[] {
-    return allWords.filter(word => this.importantWordsIds.has(word.id))
-      .map(word => ({
+    return allWords
+      .filter((word) => this.importantWordsIds.has(word.id))
+      .map((word) => ({
         ...word,
         mastered: this.masteredWordsIds.has(word.id),
-        important: true
+        important: true,
       }));
   }
 
   // Get important but not mastered words
   getImportantButNotMasteredWords(): Word[] {
-    return this.getImportantWords().filter(word => !this.masteredWordsIds.has(word.id));
+    return this.getImportantWords().filter((word) => !this.masteredWordsIds.has(word.id));
   }
 
   // Toggle mastered status for a word
   toggleWordMastered(wordId: string | number): boolean {
     const mastered = !this.masteredWordsIds.has(wordId);
-    
+
     if (mastered) {
       this.masteredWordsIds.add(wordId);
     } else {
       this.masteredWordsIds.delete(wordId);
     }
-    
+
     // Update the word in the map if it exists
     const word = this.wordMap.get(wordId);
     if (word) {
       word.mastered = mastered;
     }
-    
+
     // Save the mastered words
     this.saveMasteredWords();
-    
+
     return mastered;
   }
 
   // Toggle important status for a word
   toggleWordImportant(wordId: string | number): boolean {
     const important = !this.importantWordsIds.has(wordId);
-    
+
     if (important) {
       this.importantWordsIds.add(wordId);
     } else {
       this.importantWordsIds.delete(wordId);
     }
-    
+
     // Update the word in the map if it exists
     const word = this.wordMap.get(wordId);
     if (word) {
       word.important = important;
     }
-    
+
     // Save the important words
     this.saveImportantWords();
-    
+
     return important;
   }
 
@@ -206,9 +209,9 @@ class WordService {
 
   // Retrieve a subset of words from start to end index
   getWordSubset(startIndex: number, endIndex: number): Word[] {
-    return allWords.slice(startIndex, endIndex).map(word => ({
+    return allWords.slice(startIndex, endIndex).map((word) => ({
       ...word,
-      mastered: this.masteredWordsIds.has(word.id)
+      mastered: this.masteredWordsIds.has(word.id),
     }));
   }
 
@@ -248,10 +251,7 @@ class WordService {
   // Save the mastered words to AsyncStorage
   private saveMasteredWords(): void {
     try {
-      AsyncStorage.setItem(
-        MASTERED_WORDS_KEY, 
-        JSON.stringify(Array.from(this.masteredWordsIds))
-      );
+      AsyncStorage.setItem(MASTERED_WORDS_KEY, JSON.stringify(Array.from(this.masteredWordsIds)));
     } catch (error) {
       console.error('Error saving mastered words:', error);
     }
@@ -261,8 +261,8 @@ class WordService {
   private saveImportantWords(): void {
     try {
       AsyncStorage.setItem(
-        WordService.IMPORTANT_WORDS_KEY, 
-        JSON.stringify(Array.from(this.importantWordsIds))
+        WordService.IMPORTANT_WORDS_KEY,
+        JSON.stringify(Array.from(this.importantWordsIds)),
       );
     } catch (error) {
       console.error('Error saving important words:', error);
@@ -287,23 +287,25 @@ class WordService {
   // Shuffle words for a randomized learning experience
   shuffleWords(): Word[] {
     const shuffled = [...allWords];
-    
+
     // Fisher-Yates shuffle algorithm - optimized version
     let currentIndex = shuffled.length;
     let randomIndex;
-    
+
     while (currentIndex !== 0) {
       randomIndex = Math.floor(Math.random() * currentIndex);
       currentIndex--;
-      
+
       // Swap elements
-      [shuffled[currentIndex], shuffled[randomIndex]] = 
-        [shuffled[randomIndex], shuffled[currentIndex]];
+      [shuffled[currentIndex], shuffled[randomIndex]] = [
+        shuffled[randomIndex],
+        shuffled[currentIndex],
+      ];
     }
-    
-    return shuffled.map(word => ({
+
+    return shuffled.map((word) => ({
       ...word,
-      mastered: this.masteredWordsIds.has(word.id)
+      mastered: this.masteredWordsIds.has(word.id),
     }));
   }
 }
