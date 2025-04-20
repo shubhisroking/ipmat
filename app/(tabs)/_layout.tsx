@@ -78,7 +78,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Words',
+          title: 'IPMAT Vocab',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'book' : 'book-outline'} color={color} size={24} />
           ),
@@ -89,11 +89,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="settings"
         options={{
-          title: 'Profile', // Capitalized for consistency
+          title: 'Settings',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'person' : 'person-outline'} color={color} size={24} />
+            <Ionicons name={focused ? 'settings' : 'settings-outline'} color={color} size={24} />
           ),
           tabBarLabelStyle: {
             fontSize: 12,

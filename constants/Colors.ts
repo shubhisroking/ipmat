@@ -22,5 +22,6 @@ export const Colors = {
     systemRed: '#FF453A',
     systemGreen: '#32D74B',
     systemBlue: '#0A84FF',
+    systemYellow: '#FFD700',
   },
 };

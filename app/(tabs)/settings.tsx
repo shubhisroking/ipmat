@@ -1,15 +1,37 @@
 import React from 'react';
-import { StyleSheet, View, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { router } from 'expo-router';
+import { useSettingsStore } from '@/store/settingsStore';
 
 export default function Settings() {
+  const { hapticsEnabled, toggleHaptics } = useSettingsStore();
+  
   return (
     <ThemedView style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
+        <ThemedText style={styles.sectionHeader} variant="secondary">
+          PREFERENCES
+        </ThemedText>
+
+        <ThemedView variant="secondary" style={styles.card}>
+          <View style={styles.settingRow}>
+            <View style={styles.settingTextContainer}>
+              <Ionicons name="pulse-outline" size={22} color={Colors.dark.systemBlue} />
+              <ThemedText style={styles.settingText}>Haptic Feedback</ThemedText>
+            </View>
+            <Switch
+              value={hapticsEnabled}
+              onValueChange={toggleHaptics}
+              trackColor={{ false: Colors.dark.secondaryBackground, true: Colors.dark.systemBlue }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+        </ThemedView>
+        
         <ThemedText style={styles.sectionHeader} variant="secondary">
           ABOUT
         </ThemedText>
@@ -92,6 +114,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
   },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  settingTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  settingText: {
+    fontSize: 17,
+    fontWeight: '400',
+    marginLeft: 12,
+  },
   linkText: {
     fontSize: 17,
     fontWeight: '400',
@@ -106,4 +143,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 24,
   },
-});
+}); 

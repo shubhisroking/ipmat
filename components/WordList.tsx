@@ -1,16 +1,21 @@
 import React, { useCallback, memo } from 'react';
-import { StyleSheet, View, FlatList, Pressable } from 'react-native';
+import { StyleSheet, View, FlatList, Pressable, Text, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Word, wordService } from '@/services/wordService';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import Highlighter from './Highlighter';
 
 type WordListProps = {
   words: Word[];
   onItemPress?: (word: Word) => void;
   onMasteredToggle?: (word: Word, mastered: boolean) => void;
+  onImportantToggle?: (word: Word, important: boolean) => void;
   showMasteredToggle?: boolean;
+  showImportantToggle?: boolean;
+  searchQuery?: string;
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
 
 // Memoize the WordItem component
@@ -18,12 +23,18 @@ const WordItem = memo(({
   item, 
   onPress,
   onMasteredToggle,
-  showMasteredToggle = true
+  onImportantToggle,
+  showMasteredToggle = true,
+  showImportantToggle = true,
+  searchQuery = ''
 }: { 
   item: Word; 
   onPress: (word: Word) => void;
   onMasteredToggle?: (word: Word, mastered: boolean) => void;
+  onImportantToggle?: (word: Word, important: boolean) => void;
   showMasteredToggle?: boolean;
+  showImportantToggle?: boolean;
+  searchQuery?: string;
 }) => {
   const handleMasteredToggle = useCallback((e: any) => {
     e.stopPropagation();
@@ -33,29 +44,79 @@ const WordItem = memo(({
     }
   }, [item, onMasteredToggle]);
 
+  const handleImportantToggle = useCallback((e: any) => {
+    e.stopPropagation();
+    if (onImportantToggle) {
+      const newImportantState = !item.important;
+      onImportantToggle(item, newImportantState);
+    }
+  }, [item, onImportantToggle]);
+
   return (
-    <Pressable onPress={() => onPress(item)}>
-      <ThemedView variant="secondary" style={styles.item}>
+    <Pressable 
+      onPress={() => onPress(item)}
+      style={({ pressed }) => [
+        pressed ? styles.itemPressed : null
+      ]}
+    >
+      <ThemedView variant="secondary" style={[
+        styles.item,
+        item.important ? styles.importantItem : null,
+        item.mastered ? styles.masteredItem : null
+      ]}>
         <View style={styles.wordContainer}>
           <View style={styles.wordHeader}>
-            <ThemedText style={styles.wordText}>{item.word}</ThemedText>
-            {showMasteredToggle && (
-              <Pressable 
-                onPress={handleMasteredToggle}
-                style={styles.masteredButton}
-                hitSlop={10}
-              >
-                <Ionicons
-                  name={item.mastered ? "radio-button-on" : "radio-button-off"}
-                  size={22}
-                  color={item.mastered ? Colors.dark.systemGreen : Colors.dark.secondaryText}
-                />
-              </Pressable>
-            )}
+            <Highlighter
+              text={item.word}
+              searchQuery={searchQuery}
+              textStyle={styles.wordText}
+              highlightStyle={styles.highlight}
+            />
+            <View style={styles.buttonContainer}>
+              {showImportantToggle && (
+                <Pressable 
+                  onPress={handleImportantToggle}
+                  style={[
+                    styles.iconButton, 
+                    styles.importantButton,
+                    item.important ? styles.importantActive : null
+                  ]}
+                  hitSlop={12}
+                >
+                  <Ionicons
+                    name={item.important ? "star" : "star-outline"}
+                    size={24}
+                    color={item.important ? Colors.dark.systemYellow : Colors.dark.secondaryText}
+                  />
+                </Pressable>
+              )}
+              {showMasteredToggle && (
+                <Pressable 
+                  onPress={handleMasteredToggle}
+                  style={[
+                    styles.iconButton,
+                    styles.masteredButton,
+                    item.mastered ? styles.masteredActive : null
+                  ]}
+                  hitSlop={12}
+                >
+                  <Ionicons
+                    name={item.mastered ? "radio-button-on" : "radio-button-off"}
+                    size={24}
+                    color={item.mastered ? Colors.dark.systemGreen : Colors.dark.secondaryText}
+                  />
+                </Pressable>
+              )}
+            </View>
           </View>
-          <ThemedText variant="secondary" style={styles.meaningText}>
-            {item.meaning}
-          </ThemedText>
+          <View style={styles.divider} />
+          <Highlighter
+            text={item.meaning}
+            searchQuery={searchQuery}
+            textStyle={styles.meaningText}
+            highlightStyle={styles.highlight}
+            variant="secondary"
+          />
         </View>
       </ThemedView>
     </Pressable>
@@ -66,7 +127,11 @@ const WordList: React.FC<WordListProps> = ({
   words, 
   onItemPress,
   onMasteredToggle,
-  showMasteredToggle = true
+  onImportantToggle,
+  showMasteredToggle = true,
+  showImportantToggle = true,
+  searchQuery = '',
+  onScroll
 }) => {
   const handlePressItem = useCallback((word: Word) => {
     onItemPress?.(word);
@@ -76,32 +141,41 @@ const WordList: React.FC<WordListProps> = ({
     onMasteredToggle?.(word, mastered);
   }, [onMasteredToggle]);
 
+  const handleImportantToggle = useCallback((word: Word, important: boolean) => {
+    onImportantToggle?.(word, important);
+  }, [onImportantToggle]);
+
   const renderItem = useCallback(({ item }: { item: Word }) => {
     return (
       <WordItem 
         item={item}
         onPress={handlePressItem}
         onMasteredToggle={handleMasteredToggle}
+        onImportantToggle={handleImportantToggle}
         showMasteredToggle={showMasteredToggle}
+        showImportantToggle={showImportantToggle}
+        searchQuery={searchQuery}
       />
     );
-  }, [handlePressItem, handleMasteredToggle, showMasteredToggle]);
+  }, [handlePressItem, handleMasteredToggle, handleImportantToggle, showMasteredToggle, showImportantToggle, searchQuery]);
 
   const keyExtractor = useCallback((item: Word) => item.id.toString(), []);
 
   const emptyComponent = useCallback(() => (
     <View style={styles.emptyContainer}>
-      <Ionicons
-        name="book-outline"
-        size={60}
-        color={Colors.dark.secondaryText}
-        style={styles.emptyIcon}
-      />
-      <ThemedText variant="secondary" style={styles.emptyText}>
-        No words available
+      <View style={styles.emptyIconContainer}>
+        <Ionicons
+          name="search-outline"
+          size={70}
+          color={Colors.dark.secondaryText}
+          style={styles.emptyIcon}
+        />
+      </View>
+      <ThemedText style={styles.emptyText}>
+        No matching words found
       </ThemedText>
       <ThemedText variant="tertiary" style={styles.emptySubText}>
-        Try refreshing or check back later
+        Try a different search term or filter
       </ThemedText>
     </View>
   ), []);
@@ -117,6 +191,12 @@ const WordList: React.FC<WordListProps> = ({
       maxToRenderPerBatch={10}
       windowSize={5}
       removeClippedSubviews={true}
+      showsVerticalScrollIndicator={false}
+      bounces={true}
+      overScrollMode="always"
+      ItemSeparatorComponent={() => <View style={{ height: 2 }} />}
+      onScroll={onScroll}
+      scrollEventThrottle={16}
     />
   );
 };
@@ -124,54 +204,114 @@ const WordList: React.FC<WordListProps> = ({
 const styles = StyleSheet.create({
   listContent: {
     padding: 16,
+    paddingTop: 8,
     flexGrow: 1,
   },
   item: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  itemPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }],
+  },
+  importantItem: {
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.dark.systemYellow,
+  },
+  masteredItem: {
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.dark.systemGreen,
   },
   wordContainer: {
-    marginBottom: 10,
+    marginBottom: 0,
   },
   wordHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginVertical: 10,
   },
   wordText: {
-    fontSize: 22,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.dark.text,
+    letterSpacing: -0.5,
   },
   meaningText: {
     fontSize: 16,
-    lineHeight: 22,
+    lineHeight: 24,
+    color: Colors.dark.secondaryText,
+    marginTop: 4,
+  },
+  highlight: {
+    backgroundColor: 'rgba(255, 204, 0, 0.35)',
+    color: '#FFCC00',
+    borderRadius: 3,
+    paddingHorizontal: 2,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    padding: 6,
+    borderRadius: 20,
   },
   masteredButton: {
-    padding: 4,
+    marginLeft: 8,
+  },
+  importantButton: {
+    marginLeft: 8,
+  },
+  masteredActive: {
+    backgroundColor: 'rgba(50, 215, 75, 0.15)',
+  },
+  importantActive: {
+    backgroundColor: 'rgba(255, 215, 0, 0.15)',
   },
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    padding: 32,
     minHeight: 300,
   },
+  emptyIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
   emptyIcon: {
-    marginBottom: 16,
-    opacity: 0.6,
+    opacity: 0.7,
   },
   emptyText: {
-    fontSize: 20,
-    fontWeight: '500',
-    marginBottom: 8,
+    fontSize: 22,
+    fontWeight: '600',
+    marginBottom: 12,
     textAlign: 'center',
   },
   emptySubText: {
     fontSize: 16,
+    lineHeight: 22,
     textAlign: 'center',
-    maxWidth: '80%',
+    maxWidth: '90%',
+    color: Colors.dark.tertiaryText,
   },
 });
 
