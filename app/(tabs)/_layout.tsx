@@ -89,19 +89,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="bookmarks"
-        options={{
-          title: 'Bookmarks',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'bookmark' : 'bookmark-outline'} color={color} size={24} />
-          ),
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: '500',
-          },
-        }}
-      />
-      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile', // Capitalized for consistency
