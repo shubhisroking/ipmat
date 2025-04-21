@@ -79,14 +79,14 @@ export default function HelpAndSupport() {
             <Ionicons name="mail" size={22} color="#FFFFFF" style={styles.buttonIcon} />
             <ThemedText style={styles.buttonText}>Email Support</ThemedText>
           </TouchableOpacity>
-          
-          <ThemedText variant="tertiary" style={styles.supportNote}>
+            <ThemedText variant="tertiary" style={styles.supportNote}>
             We typically respond to all inquiries within 24-48 hours.
           </ThemedText>
         </ThemedView>
-
+        
         <ThemedView variant="secondary" style={styles.card}>
-          <ThemedText style={styles.sectionTitle}>App Information</ThemedText>          <View style={styles.infoRow}>
+          <ThemedText style={styles.sectionTitle}>App Information</ThemedText>
+          <View style={styles.infoRow}>
             <ThemedText style={styles.infoLabel}>Version:</ThemedText>
             <ThemedText variant="secondary">1.0.0</ThemedText>
           </View>

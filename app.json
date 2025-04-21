@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "IPMAT Vocab",
-    "slug": "ipmat-vocab",
+    "slug": "ipmat",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -13,6 +13,7 @@
     "ios": {
       "bundleIdentifier": "com.shubhisroking.ipmat",
       "supportsTablet": true,
+      "buildNumber": "2",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
