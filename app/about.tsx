@@ -33,7 +33,7 @@ const AboutScreen = () => {
           />
           <ThemedText style={styles.title}>IPMAT Vocab</ThemedText>
           <ThemedText variant="tertiary" style={styles.version}>
-            Version 1.0.0
+            Version 1.0.0 • April 22, 2025
           </ThemedText>
         </View>
         <ThemedView variant="secondary" style={styles.card}>

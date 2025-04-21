@@ -1,13 +1,15 @@
 {
   "expo": {
-    "name": "ipmat",
-    "slug": "ipmat",
+    "name": "IPMAT Vocab",
+    "slug": "ipmat-vocab",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "ipmatvocab",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "description": "Master essential vocabulary for the IPMAT exam with this comprehensive learning app",
+    "primaryColor": "#0A84FF",
     "ios": {
       "bundleIdentifier": "com.shubhisroking.ipmat",
       "supportsTablet": true,
@@ -35,7 +37,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#000000"
         }
       ]
     ],

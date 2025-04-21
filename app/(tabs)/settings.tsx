@@ -75,7 +75,7 @@ export default function Settings() {
         </ThemedView>
 
         <ThemedText style={styles.versionText} variant="tertiary">
-          Version 1.0.0
+          Version 1.0.0 • April 22, 2025
         </ThemedText>
       </ScrollView>
     </ThemedView>

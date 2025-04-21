@@ -86,13 +86,12 @@ export default function HelpAndSupport() {
         </ThemedView>
 
         <ThemedView variant="secondary" style={styles.card}>
-          <ThemedText style={styles.sectionTitle}>App Information</ThemedText>
-          <View style={styles.infoRow}>
+          <ThemedText style={styles.sectionTitle}>App Information</ThemedText>          <View style={styles.infoRow}>
             <ThemedText style={styles.infoLabel}>Version:</ThemedText>
             <ThemedText variant="secondary">1.0.0</ThemedText>
           </View>
           <View style={styles.infoRow}>
-            <ThemedText style={styles.infoLabel}>Last Updated:</ThemedText>
+            <ThemedText style={styles.infoLabel}>Released:</ThemedText>
             <ThemedText variant="secondary">April 22, 2025</ThemedText>
           </View>
           <View style={styles.infoRow}>
