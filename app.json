@@ -13,7 +13,6 @@
     "ios": {
       "bundleIdentifier": "com.shubhisroking.ipmat",
       "supportsTablet": true,
-      "buildNumber": "2",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
