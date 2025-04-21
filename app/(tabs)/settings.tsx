@@ -37,7 +37,7 @@ export default function Settings() {
         </ThemedText>
 
         <ThemedView variant="secondary" style={styles.card}>
-          <TouchableOpacity style={styles.linkRow}>
+          <TouchableOpacity style={styles.linkRow} onPress={() => router.push('/help-support')}>
             <Ionicons name="help-circle-outline" size={22} color={Colors.dark.systemBlue} />
             <ThemedText style={styles.linkText}>Help & Support</ThemedText>
             <Ionicons
@@ -50,7 +50,7 @@ export default function Settings() {
 
           <View style={[styles.separator, { backgroundColor: Colors.dark.separator }]} />
 
-          <TouchableOpacity style={styles.linkRow}>
+          <TouchableOpacity style={styles.linkRow} onPress={() => router.push('/privacy-policy')}>
             <Ionicons name="document-text-outline" size={22} color={Colors.dark.systemBlue} />
             <ThemedText style={styles.linkText}>Privacy Policy</ThemedText>
             <Ionicons
