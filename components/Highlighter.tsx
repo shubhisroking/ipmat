@@ -44,7 +44,9 @@ const Highlighter: React.FC<HighlighterProps> = ({
             {part.text}
           </Text>
         ) : (
-          part.text
+          <Text key={`plain-${i}`}>
+            {part.text}
+          </Text>
         ),
       )}
     </ThemedText>

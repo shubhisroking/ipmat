@@ -89,6 +89,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="flashcards"
+        options={{
+          title: 'Flashcards',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'albums' : 'albums-outline'} color={color} size={24} />
+          ),
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '500',
+          },
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
