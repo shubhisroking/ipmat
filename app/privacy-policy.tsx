@@ -28,37 +28,37 @@ export default function PrivacyPolicy() {
         <ThemedView variant="secondary" style={styles.card}>
           <ThemedText style={styles.sectionTitle}>IPMAT Vocab Privacy Policy</ThemedText>
           <ThemedText style={styles.lastUpdated}>Last Updated: April 22, 2025</ThemedText>
-          
+
           <ThemedText variant="secondary" style={styles.paragraph}>
-            Thank you for using IPMAT Vocab. This privacy policy describes our policies and procedures
-            on the collection, use, and disclosure of your information.
+            Thank you for using IPMAT Vocab. This privacy policy describes our policies and
+            procedures on the collection, use, and disclosure of your information.
           </ThemedText>
-          
+
           <ThemedText style={styles.heading}>Information Collection</ThemedText>
           <ThemedText variant="secondary" style={styles.paragraph}>
-            IPMAT Vocab does not collect, store, or transmit any personal information, 
-            usage data, or any other data from your device to external servers.
+            IPMAT Vocab does not collect, store, or transmit any personal information, usage data,
+            or any other data from your device to external servers.
           </ThemedText>
-          
+
           <ThemedText style={styles.heading}>Local Data Storage</ThemedText>
           <ThemedText variant="secondary" style={styles.paragraph}>
-            All app data, including word lists, user preferences, and learning progress, is 
-            stored locally on your device using AsyncStorage. This data never leaves your device and is 
+            All app data, including word lists, user preferences, and learning progress, is stored
+            locally on your device using AsyncStorage. This data never leaves your device and is
             used solely to provide functionality within the app.
           </ThemedText>
-          
+
           <ThemedText style={styles.heading}>Third-Party Services</ThemedText>
           <ThemedText variant="secondary" style={styles.paragraph}>
-            IPMAT Vocab does not integrate with any third-party analytics, advertising, 
-            or tracking services. We do not share any information with third parties.
+            IPMAT Vocab does not integrate with any third-party analytics, advertising, or tracking
+            services. We do not share any information with third parties.
           </ThemedText>
-          
+
           <ThemedText style={styles.heading}>Changes to This Policy</ThemedText>
           <ThemedText variant="secondary" style={styles.paragraph}>
-            We may update our Privacy Policy from time to time. We will notify you of any changes
-            by updating the "Last Updated" date of this policy.
+            We may update our Privacy Policy from time to time. We will notify you of any changes by
+            updating the "Last Updated" date of this policy.
           </ThemedText>
-          
+
           <ThemedText style={styles.heading}>Contact Us</ThemedText>
           <ThemedText variant="secondary" style={styles.paragraph}>
             If you have any questions about this Privacy Policy, you can contact us at:

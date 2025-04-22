@@ -32,37 +32,37 @@ export default function HelpAndSupport() {
         showsVerticalScrollIndicator={false}>
         <ThemedView variant="secondary" style={styles.card}>
           <ThemedText style={styles.sectionTitle}>Frequently Asked Questions</ThemedText>
-          
+
           <ThemedText style={styles.question}>How do I mark a word as mastered?</ThemedText>
           <ThemedText variant="secondary" style={styles.answer}>
-            Tap the circle icon next to any word in the list to toggle its mastered status. 
-            A green circle indicates that the word has been mastered.
+            Tap the circle icon next to any word in the list to toggle its mastered status. A green
+            circle indicates that the word has been mastered.
           </ThemedText>
-          
+
           <ThemedText style={styles.question}>How do I mark a word as important?</ThemedText>
           <ThemedText variant="secondary" style={styles.answer}>
-            Tap the star icon next to any word in the list to mark it as important. 
-            A yellow star indicates that the word has been marked as important.
+            Tap the star icon next to any word in the list to mark it as important. A yellow star
+            indicates that the word has been marked as important.
           </ThemedText>
-          
+
           <ThemedText style={styles.question}>How do I filter the word list?</ThemedText>
           <ThemedText variant="secondary" style={styles.answer}>
-            Tap the filter icon in the search bar to open the filter options. You can filter by 
+            Tap the filter icon in the search bar to open the filter options. You can filter by
             mastered status or importance.
           </ThemedText>
-          
+
           <ThemedText style={styles.question}>How do I search for specific words?</ThemedText>
           <ThemedText variant="secondary" style={styles.answer}>
-            Use the search bar at the top of the word list to search for specific words or meanings. 
+            Use the search bar at the top of the word list to search for specific words or meanings.
             Results will update as you type.
           </ThemedText>
-          
+
           <ThemedText style={styles.question}>Is my progress saved?</ThemedText>
           <ThemedText variant="secondary" style={styles.answer}>
-            Yes, all your progress, including mastered words and important words, is automatically saved 
-            to your device and will be available the next time you open the app.
+            Yes, all your progress, including mastered words and important words, is automatically
+            saved to your device and will be available the next time you open the app.
           </ThemedText>
-          
+
           <ThemedText style={styles.question}>How do I disable haptic feedback?</ThemedText>
           <ThemedText variant="secondary" style={styles.answer}>
             You can toggle haptic feedback on/off in the Settings tab under Preferences.
@@ -74,16 +74,16 @@ export default function HelpAndSupport() {
           <ThemedText variant="secondary" style={styles.paragraph}>
             Having trouble or found a bug? Our support team is ready to help you.
           </ThemedText>
-          
+
           <TouchableOpacity style={styles.contactButton} onPress={handleContactEmail}>
             <Ionicons name="mail" size={22} color="#FFFFFF" style={styles.buttonIcon} />
             <ThemedText style={styles.buttonText}>Email Support</ThemedText>
           </TouchableOpacity>
-            <ThemedText variant="tertiary" style={styles.supportNote}>
+          <ThemedText variant="tertiary" style={styles.supportNote}>
             We typically respond to all inquiries within 24-48 hours.
           </ThemedText>
         </ThemedView>
-        
+
         <ThemedView variant="secondary" style={styles.card}>
           <ThemedText style={styles.sectionTitle}>App Information</ThemedText>
           <View style={styles.infoRow}>

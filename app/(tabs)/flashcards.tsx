@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  StyleSheet,
-  View,
-  Animated,
-  TouchableOpacity,
-  Dimensions,
-  ScrollView,
-} from 'react-native';
+import { StyleSheet, View, Animated, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { wordService, Word } from '@/services/wordService';
@@ -21,8 +14,10 @@ function FlashcardsScreen() {
   const [words, setWords] = useState<Word[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const [filterType, setFilterType] = useState<'all' | 'important' | 'mastered' | 'not-mastered'>('all');
-  
+  const [filterType, setFilterType] = useState<'all' | 'important' | 'mastered' | 'not-mastered'>(
+    'all',
+  );
+
   const flipAnimation = useRef(new Animated.Value(0)).current;
   const cardAnimation = useRef(new Animated.Value(0)).current;
   const { impact } = useHaptics();
@@ -36,7 +31,7 @@ function FlashcardsScreen() {
     try {
       setLoading(true);
       await wordService.init();
-      
+
       let filteredWords: Word[] = [];
       switch (filterType) {
         case 'all':
@@ -49,10 +44,10 @@ function FlashcardsScreen() {
           filteredWords = wordService.getMasteredWords();
           break;
         case 'not-mastered':
-          filteredWords = wordService.getAllWords().filter(word => !word.mastered);
+          filteredWords = wordService.getAllWords().filter((word) => !word.mastered);
           break;
       }
-      
+
       setWords(filteredWords);
       setCurrentIndex(0);
       setFlipped(false);
@@ -71,17 +66,17 @@ function FlashcardsScreen() {
   // Navigation functions
   const navigateToNextCard = () => {
     if (currentIndex >= words.length - 1) return;
-    
+
     // Animate card to exit left
     Animated.timing(cardAnimation, {
       toValue: -width,
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
-      setCurrentIndex(prevIndex => prevIndex + 1);
+      setCurrentIndex((prevIndex) => prevIndex + 1);
       setFlipped(false);
       cardAnimation.setValue(width); // Position next card off-screen to the right
-      
+
       // Animate card to enter from right
       Animated.timing(cardAnimation, {
         toValue: 0,
@@ -89,23 +84,23 @@ function FlashcardsScreen() {
         useNativeDriver: true,
       }).start();
     });
-    
+
     impact();
   };
 
   const navigateToPreviousCard = () => {
     if (currentIndex <= 0) return;
-    
+
     // Animate card to exit right
     Animated.timing(cardAnimation, {
       toValue: width,
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
-      setCurrentIndex(prevIndex => prevIndex - 1);
+      setCurrentIndex((prevIndex) => prevIndex - 1);
       setFlipped(false);
       cardAnimation.setValue(-width); // Position previous card off-screen to the left
-      
+
       // Animate card to enter from left
       Animated.timing(cardAnimation, {
         toValue: 0,
@@ -113,20 +108,20 @@ function FlashcardsScreen() {
         useNativeDriver: true,
       }).start();
     });
-    
+
     impact();
   };
 
   // Flip card animation
   const flipCard = () => {
     if (words.length === 0) return;
-    
+
     Animated.timing(flipAnimation, {
       toValue: flipped ? 0 : 1,
       duration: 300,
       useNativeDriver: true,
     }).start(() => setFlipped(!flipped));
-    
+
     impact();
   };
 
@@ -159,10 +154,10 @@ function FlashcardsScreen() {
   // Handle toggle for mastered/important
   const toggleMastered = useCallback(() => {
     if (words.length === 0) return;
-    
+
     const word = words[currentIndex];
     wordService.toggleWordMastered(word.id);
-    
+
     // Update the current word in the state
     const updatedWords = [...words];
     updatedWords[currentIndex] = {
@@ -170,16 +165,16 @@ function FlashcardsScreen() {
       mastered: !word.mastered,
     };
     setWords(updatedWords);
-    
+
     impact();
   }, [words, currentIndex, impact]);
 
   const toggleImportant = useCallback(() => {
     if (words.length === 0) return;
-    
+
     const word = words[currentIndex];
     wordService.toggleWordImportant(word.id);
-    
+
     // Update the current word in the state
     const updatedWords = [...words];
     updatedWords[currentIndex] = {
@@ -187,7 +182,7 @@ function FlashcardsScreen() {
       important: !word.important,
     };
     setWords(updatedWords);
-    
+
     impact();
   }, [words, currentIndex, impact]);
 
@@ -227,14 +222,37 @@ function FlashcardsScreen() {
     return (
       <ThemedView style={styles.container}>
         <View style={styles.filterContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScrollView}>
-            <FilterOption label="All Words" value="all" selectedValue={filterType} onSelect={setFilterType} />
-            <FilterOption label="Important" value="important" selectedValue={filterType} onSelect={setFilterType} />
-            <FilterOption label="Mastered" value="mastered" selectedValue={filterType} onSelect={setFilterType} />
-            <FilterOption label="Not Mastered" value="not-mastered" selectedValue={filterType} onSelect={setFilterType} />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filtersScrollView}>
+            <FilterOption
+              label="All Words"
+              value="all"
+              selectedValue={filterType}
+              onSelect={setFilterType}
+            />
+            <FilterOption
+              label="Important"
+              value="important"
+              selectedValue={filterType}
+              onSelect={setFilterType}
+            />
+            <FilterOption
+              label="Mastered"
+              value="mastered"
+              selectedValue={filterType}
+              onSelect={setFilterType}
+            />
+            <FilterOption
+              label="Not Mastered"
+              value="not-mastered"
+              selectedValue={filterType}
+              onSelect={setFilterType}
+            />
           </ScrollView>
         </View>
-        
+
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
             <Ionicons
@@ -246,7 +264,8 @@ function FlashcardsScreen() {
           </View>
           <ThemedText style={styles.emptyText}>No flashcards available</ThemedText>
           <ThemedText variant="tertiary" style={styles.emptySubText}>
-            Try selecting a different category or add some words to your important or mastered lists.
+            Try selecting a different category or add some words to your important or mastered
+            lists.
           </ThemedText>
         </View>
       </ThemedView>
@@ -257,11 +276,34 @@ function FlashcardsScreen() {
     <ThemedView style={styles.container}>
       {/* Filter options */}
       <View style={styles.filterContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScrollView}>
-          <FilterOption label="All Words" value="all" selectedValue={filterType} onSelect={setFilterType} />
-          <FilterOption label="Important" value="important" selectedValue={filterType} onSelect={setFilterType} />
-          <FilterOption label="Mastered" value="mastered" selectedValue={filterType} onSelect={setFilterType} />
-          <FilterOption label="Not Mastered" value="not-mastered" selectedValue={filterType} onSelect={setFilterType} />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersScrollView}>
+          <FilterOption
+            label="All Words"
+            value="all"
+            selectedValue={filterType}
+            onSelect={setFilterType}
+          />
+          <FilterOption
+            label="Important"
+            value="important"
+            selectedValue={filterType}
+            onSelect={setFilterType}
+          />
+          <FilterOption
+            label="Mastered"
+            value="mastered"
+            selectedValue={filterType}
+            onSelect={setFilterType}
+          />
+          <FilterOption
+            label="Not Mastered"
+            value="not-mastered"
+            selectedValue={filterType}
+            onSelect={setFilterType}
+          />
         </ScrollView>
       </View>
 
@@ -279,10 +321,20 @@ function FlashcardsScreen() {
             <Animated.View style={[styles.card, frontAnimatedStyle, { zIndex: flipped ? 0 : 1 }]}>
               <View style={styles.cardHeader}>
                 {words[currentIndex]?.important && (
-                  <Ionicons name="star" size={24} color={Colors.dark.systemYellow} style={styles.cardIcon} />
+                  <Ionicons
+                    name="star"
+                    size={24}
+                    color={Colors.dark.systemYellow}
+                    style={styles.cardIcon}
+                  />
                 )}
                 {words[currentIndex]?.mastered && (
-                  <Ionicons name="checkmark-circle" size={24} color={Colors.dark.systemGreen} style={styles.cardIcon} />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={24}
+                    color={Colors.dark.systemGreen}
+                    style={styles.cardIcon}
+                  />
                 )}
               </View>
               <View style={styles.cardContent}>
@@ -300,10 +352,20 @@ function FlashcardsScreen() {
               ]}>
               <View style={styles.cardHeader}>
                 {words[currentIndex]?.important && (
-                  <Ionicons name="star" size={24} color={Colors.dark.systemYellow} style={styles.cardIcon} />
+                  <Ionicons
+                    name="star"
+                    size={24}
+                    color={Colors.dark.systemYellow}
+                    style={styles.cardIcon}
+                  />
                 )}
                 {words[currentIndex]?.mastered && (
-                  <Ionicons name="checkmark-circle" size={24} color={Colors.dark.systemGreen} style={styles.cardIcon} />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={24}
+                    color={Colors.dark.systemGreen}
+                    style={styles.cardIcon}
+                  />
                 )}
               </View>
               <View style={styles.cardContent}>
@@ -314,39 +376,40 @@ function FlashcardsScreen() {
           </TouchableOpacity>
         </Animated.View>
       </View>
-      
+
       {/* Navigation buttons */}
       <View style={styles.navigationButtonsContainer}>
-        <TouchableOpacity 
-          style={[styles.navArrowButton, currentIndex === 0 && styles.navButtonDisabled]} 
+        <TouchableOpacity
+          style={[styles.navArrowButton, currentIndex === 0 && styles.navButtonDisabled]}
           onPress={navigateToPreviousCard}
-          disabled={currentIndex === 0}
-        >
-          <Ionicons 
-            name="arrow-back-circle" 
-            size={50} 
-            color={currentIndex === 0 ? Colors.dark.tertiaryText : Colors.dark.systemBlue} 
+          disabled={currentIndex === 0}>
+          <Ionicons
+            name="arrow-back-circle"
+            size={50}
+            color={currentIndex === 0 ? Colors.dark.tertiaryText : Colors.dark.systemBlue}
           />
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.navArrowButton, currentIndex === words.length - 1 && styles.navButtonDisabled]} 
+
+        <TouchableOpacity
+          style={[
+            styles.navArrowButton,
+            currentIndex === words.length - 1 && styles.navButtonDisabled,
+          ]}
           onPress={navigateToNextCard}
-          disabled={currentIndex === words.length - 1}
-        >
-          <Ionicons 
-            name="arrow-forward-circle" 
-            size={50} 
-            color={currentIndex === words.length - 1 ? Colors.dark.tertiaryText : Colors.dark.systemBlue} 
+          disabled={currentIndex === words.length - 1}>
+          <Ionicons
+            name="arrow-forward-circle"
+            size={50}
+            color={
+              currentIndex === words.length - 1 ? Colors.dark.tertiaryText : Colors.dark.systemBlue
+            }
           />
         </TouchableOpacity>
       </View>
-      
+
       {/* Word marking controls */}
       <View style={styles.controlsContainer}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={toggleMastered}>
+        <TouchableOpacity style={styles.actionButton} onPress={toggleMastered}>
           <Ionicons
             name={words[currentIndex]?.mastered ? 'radio-button-on' : 'radio-button-off'}
             size={24}
@@ -357,9 +420,7 @@ function FlashcardsScreen() {
           </ThemedText>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={toggleImportant}>
+        <TouchableOpacity style={styles.actionButton} onPress={toggleImportant}>
           <Ionicons
             name={words[currentIndex]?.important ? 'star' : 'star-outline'}
             size={24}
@@ -374,7 +435,8 @@ function FlashcardsScreen() {
   );
 }
 
-const styles = StyleSheet.create({  container: {
+const styles = StyleSheet.create({
+  container: {
     flex: 1,
     paddingHorizontal: 20,
     paddingVertical: 24,
@@ -397,7 +459,8 @@ const styles = StyleSheet.create({  container: {
   filtersScrollView: {
     paddingVertical: 8,
     gap: 8,
-  },  filterOption: {
+  },
+  filterOption: {
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 20,
@@ -422,7 +485,8 @@ const styles = StyleSheet.create({  container: {
   filterTextActive: {
     color: '#FFFFFF',
     fontWeight: '600',
-  },  progressContainer: {
+  },
+  progressContainer: {
     alignItems: 'center',
     marginBottom: 16,
     marginTop: 4,
@@ -439,7 +503,8 @@ const styles = StyleSheet.create({  container: {
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-  },  cardContainer: {
+  },
+  cardContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -454,7 +519,8 @@ const styles = StyleSheet.create({  container: {
   },
   cardTouchable: {
     flex: 1,
-  },  card: {
+  },
+  card: {
     flex: 1,
     borderRadius: 28,
     padding: 30,
@@ -485,7 +551,8 @@ const styles = StyleSheet.create({  container: {
   },
   cardIcon: {
     marginLeft: 8,
-  },  cardContent: {
+  },
+  cardContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -516,7 +583,8 @@ const styles = StyleSheet.create({  container: {
     fontStyle: 'italic',
     color: 'rgba(255, 255, 255, 0.7)',
     letterSpacing: 0.3,
-  },  navigationButtonsContainer: {
+  },
+  navigationButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -548,7 +616,8 @@ const styles = StyleSheet.create({  container: {
   },
   navButtonDisabled: {
     opacity: 0.5,
-  },  actionButton: {
+  },
+  actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
@@ -600,7 +669,7 @@ const styles = StyleSheet.create({  container: {
     fontWeight: '600',
     marginBottom: 12,
     textAlign: 'center',
-  },  
+  },
   emptySubText: {
     fontSize: 16,
     lineHeight: 22,

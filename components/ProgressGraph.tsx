@@ -11,13 +11,11 @@ type ProgressGraphProps = {
 };
 
 export const ProgressGraph: React.FC<ProgressGraphProps> = ({ weekStats, todayStats }) => {
-  
-  const maxCount = Math.max(...weekStats.map(day => day.masteredCount), 1); 
+  const maxCount = Math.max(...weekStats.map((day) => day.masteredCount), 1);
 
-  
   const todayCount = todayStats.masteredCount;
   const weekTotal = weekStats.reduce((sum, day) => sum + day.masteredCount, 0);
-  
+
   const getDayLetter = (dateString: string): string => {
     const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
     const date = new Date(dateString);
@@ -36,37 +34,27 @@ export const ProgressGraph: React.FC<ProgressGraphProps> = ({ weekStats, todaySt
           <ThemedText style={styles.headerValue}>{weekTotal}</ThemedText>
         </View>
       </View>
-      
+
       <View style={styles.graphContainer}>
         {weekStats.map((day, index) => {
-          
-          const heightPercentage = day.masteredCount > 0 
-            ? (day.masteredCount / maxCount) * 100 
-            : 0;
-          
-          
+          const heightPercentage = day.masteredCount > 0 ? (day.masteredCount / maxCount) * 100 : 0;
+
           const dayName = getDayLetter(day.date);
-          
-          
+
           const isToday = day.date === todayStats.date;
 
           return (
             <View key={day.date} style={styles.barColumn}>
               <View style={styles.barWrapper}>
-                <View 
+                <View
                   style={[
-                    styles.bar, 
+                    styles.bar,
                     { height: `${heightPercentage}%` },
-                    isToday ? styles.todayBar : null
-                  ]} 
+                    isToday ? styles.todayBar : null,
+                  ]}
                 />
               </View>
-              <ThemedText 
-                style={[
-                  styles.barLabel,
-                  isToday ? styles.todayLabel : null
-                ]}
-              >
+              <ThemedText style={[styles.barLabel, isToday ? styles.todayLabel : null]}>
                 {dayName}
               </ThemedText>
             </View>

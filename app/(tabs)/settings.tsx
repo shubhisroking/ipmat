@@ -15,7 +15,6 @@ export default function Settings() {
   const [todayStats, setTodayStats] = useState<DailyStats>({ date: '', masteredCount: 0 });
   const [statsLoaded, setStatsLoaded] = useState(false);
 
-  
   useEffect(() => {
     const loadStats = async () => {
       await statsService.init();
@@ -26,13 +25,11 @@ export default function Settings() {
 
     loadStats();
 
-    
     const unsubscribe = statsService.subscribe(() => {
       setWeekStats(statsService.getWeekStats());
       setTodayStats(statsService.getTodayStats());
     });
 
-    
     return () => unsubscribe();
   }, []);
 
