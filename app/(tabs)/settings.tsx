@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/Colors';
@@ -6,13 +6,53 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { router } from 'expo-router';
 import { useSettingsStore } from '@/store/settingsStore';
+import { ProgressGraph } from '@/components/ProgressGraph';
+import { statsService, DailyStats } from '@/services/statsService';
 
 export default function Settings() {
   const { hapticsEnabled, toggleHaptics } = useSettingsStore();
+  const [weekStats, setWeekStats] = useState<DailyStats[]>([]);
+  const [todayStats, setTodayStats] = useState<DailyStats>({ date: '', masteredCount: 0 });
+  const [statsLoaded, setStatsLoaded] = useState(false);
+
+  
+  useEffect(() => {
+    const loadStats = async () => {
+      await statsService.init();
+      setWeekStats(statsService.getWeekStats());
+      setTodayStats(statsService.getTodayStats());
+      setStatsLoaded(true);
+    };
+
+    loadStats();
+
+    
+    const unsubscribe = statsService.subscribe(() => {
+      setWeekStats(statsService.getWeekStats());
+      setTodayStats(statsService.getTodayStats());
+    });
+
+    
+    return () => unsubscribe();
+  }, []);
 
   return (
     <ThemedView style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
+        <ThemedText style={styles.sectionHeader} variant="secondary">
+          MASTERED WORDS
+        </ThemedText>
+
+        <ThemedView variant="secondary" style={styles.card}>
+          {statsLoaded ? (
+            <ProgressGraph weekStats={weekStats} todayStats={todayStats} />
+          ) : (
+            <View style={styles.loadingContainer}>
+              <ThemedText>Loading statistics...</ThemedText>
+            </View>
+          )}
+        </ThemedView>
+
         <ThemedText style={styles.sectionHeader} variant="secondary">
           PREFERENCES
         </ThemedText>
@@ -100,6 +140,12 @@ const styles = StyleSheet.create({
     marginLeft: 16,
     marginBottom: 8,
     marginTop: 16,
+  },
+  loadingContainer: {
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 160,
   },
   card: {
     borderRadius: 10,

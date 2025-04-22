@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import allWords from '@/assets/data/words.json';
+import { statsService } from './statsService';
 
 // The batch size to load words in chunks
 const BATCH_SIZE = 50;
@@ -28,6 +29,9 @@ class WordService {
   // Initialize the service by loading saved words from AsyncStorage cache
   async init(): Promise<void> {
     if (this.isLoaded) return; // Prevent multiple initializations
+
+    // Initialize stats service
+    await statsService.init();
 
     try {
       const cachedWordsJson = await AsyncStorage.getItem(WORD_CACHE_KEY);
@@ -156,8 +160,12 @@ class WordService {
 
     if (mastered) {
       this.masteredWordsIds.add(wordId);
+      // Record this word being mastered in stats
+      statsService.recordWordMastered();
     } else {
       this.masteredWordsIds.delete(wordId);
+      // Record this word being unmastered in stats
+      statsService.recordWordUnmastered();
     }
 
     // Update the word in the map if it exists
